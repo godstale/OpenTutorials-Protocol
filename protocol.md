@@ -1,6 +1,6 @@
 # Open Tutorials Course Bundler Protocol Specification
 
-**Version:** 1.1.0  
+**Version:** 1.1.1  
 **Status:** Active  
 **Scope:** Open Tutorials Course Packaging & local execution
 
@@ -63,16 +63,26 @@ Open Tutorials 플랫폼에서 강좌 번들이 처리되고 데이터베이스�
 | `title` | String | **Mandatory** | 강좌 패키지의 공식 명칭 | `"마케팅 에이전트 마스터"` |
 | `slug` | String | Optional | 플랫폼 URL 경로로 활용될 고유 키 (누락 시 Title 기반 자동변환) | `"marketing-integrated-course"` |
 | `description` | String | Optional | 강좌 패키지에 대한 종합 설명 | `"초급부터 고급까지 다루는 종합 마케팅 과정"` |
+| `author` | Object | **Mandatory** | 강좌 작성자 정보 (닉네임, 이메일, 홈페이지 등) | 아래 작성자 정보 스키마 참조 |
 | `thumbnail` | String | Optional | 대표 이미지 경로 | `"./thumbnail.png"` |
 | `published` | Boolean | Optional | 즉시 공개 여부 (기본값: `true`) | `true` |
 | `sequential_play` | Boolean | Optional | 카드들의 순차 수강 강제 여부 (기본값: `false`) | `false` |
 | `force_checkpoint` | Boolean | Optional | 특정 체크포인트를 지나야만 다음 단계 활성화 (기본값: `false`) | `false` |
 | `version` | String | Optional | 강좌 패키지 자체의 배포 버전 (기본값: `"1.0.0"`) | `"1.2.0"` |
 | `changelog` | String | Optional | 버전별 주요 변경 사항 (기본값: `"최초 릴리즈"`) | `"TOC 구조 최적화 및 3장 실습 추가"` |
-| `bundler_protocol_version` | String | **Mandatory** | 이 번들이 준수한 번들러 프로토콜 명세 버전 | `"1.1.0"` |
+| `bundler_protocol_version` | String | **Mandatory** | 이 번들이 준수한 번들러 프로토콜 명세 버전 | `"1.1.1"` |
 | `target_age` | String | **Mandatory** | 강좌 수강에 권장되는 대상 연령대 | `"전연령"`, `"초등학생"`, `"10대"`, `"성인"` |
 | `category` | String | **Mandatory** | 강좌의 대분류 카테고리 | `"Programming"`, `"Design"`, `"Marketing"`, `"Math"` |
 | `tags` | Array of String | Optional | 강좌의 성격을 나타내는 태그 목록 | `["아두이노", "IoT", "하드웨어"]` |
+
+#### 작성자 정보(author) 스키마
+`author` 객체는 다음과 같은 하위 필드를 포함해야 합니다.
+
+| 필드명 | 타입 | 필수 여부 | 설명 | 예시 |
+| :--- | :--- | :---: | :--- | :--- |
+| `nickname` | String | **Mandatory** | 작성자의 닉네임 | `"Kailash"` |
+| `email` | String | Optional | 작성자의 이메일 주소 | `"godstale@hotmail.com"` |
+| `website` | String | Optional | 작성자의 홈페이지 또는 블로그 URL | `"https://hardcopyworld.com"` |
 
 ---
 
@@ -166,13 +176,18 @@ Open Tutorials 플랫폼에서 강좌 번들이 처리되고 데이터베이스�
   "title": "AI 튜터 기반 파이썬 프로그래밍",
   "slug": "ai-tutor-python-course",
   "description": "AI 튜터와 대화하며 배우는 파이썬 기초부터 활용까지",
+  "author": {
+    "nickname": "Kailash",
+    "email": "godstale@hotmail.com",
+    "website": "https://hardcopyworld.com"
+  },
   "thumbnail": "./thumbnail.png",
   "published": true,
   "sequential_play": true,
   "force_checkpoint": false,
   "version": "1.0.0",
   "changelog": "최초 릴리즈",
-  "bundler_protocol_version": "1.1.0",
+  "bundler_protocol_version": "1.1.1",
   "target_age": "10대 이상",
   "category": "Programming",
   "tags": ["Python", "AI", "Beginner"]

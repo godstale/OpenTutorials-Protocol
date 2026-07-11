@@ -4,6 +4,15 @@
 
 ---
 
+## [v1.1.1] - 2026-07-11
+
+### Added
+- **`package-manifest.json` 메타데이터 내 `author` 필드 추가 (Mandatory)**:
+  - 타입: `Object` (하위 필드: `nickname` 필수, `email` 선택, `website` 선택)
+  - 설명: 강좌 번들이 OpenTutorials-Browser 등에 등록될 때 작성자를 식별하기 위해 작성자의 닉네임, 이메일, 홈페이지 URL 정보를 포함하도록 규정하였습니다.
+
+---
+
 ## [v1.1.0] - 2026-07-06
 
 ### Added
