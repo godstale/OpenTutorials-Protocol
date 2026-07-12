@@ -4,6 +4,30 @@
 
 ---
 
+## [v1.3.1] - 2026-07-12
+
+### Added
+- **4.1.2절 "제3자 리소스 고지(Third-Party Resource Notices)" 신설**: 다른 원저작물(책, 영상, 이미지, 오픈소스 코드 등)을 각색·인용하여 강좌를 제작한 경우, 리소스별 출처·라이선스·각색 범위·주의사항을 `license_file`에 고지할 수 있도록 규정하였습니다. Open Tutorials 앱은 이 내용을 강좌 상세/정보 화면에서 학습자에게 노출합니다.
+
+### Changed
+- **`license_file` 필드 사용 조건 완화**: 기존에는 `license`가 `"custom"`일 때만 사용 가능했으나, `"custom"`이 아닌 사전 정의 라이선스를 쓰는 경우에도 제3자 리소스 고지 목적으로 선택적으로 첨부할 수 있도록 변경하였습니다 (여전히 `"custom"`일 때는 Mandatory).
+
+---
+
+## [v1.3.0] - 2026-07-12
+
+### Added
+- **`package-manifest.json` 내 `license` 속성 추가 (Optional)**:
+  - 타입: `String` (기본값: `"all-rights-reserved"`)
+  - 설명: 강좌 콘텐츠에 적용되는 라이선스를 명시하는 필드를 추가하였습니다. 사전 정의된 값(`CC-BY-4.0`, `CC-BY-SA-4.0`, `CC-BY-NC-4.0`, `CC-BY-NC-SA-4.0`, `CC-BY-ND-4.0`, `CC-BY-NC-ND-4.0`, `CC0-1.0`, `all-rights-reserved`) 중 하나를 사용하거나, 직접 작성한 라이선스를 사용하려면 `"custom"`으로 지정합니다.
+- **`package-manifest.json` 내 `license_file` 속성 추가 (Conditional)**:
+  - 타입: `String`
+  - 설명: `license`가 `"custom"`일 때 필수로 지정해야 하는 필드로, ZIP 루트에 포함된 커스텀 라이선스 전문 파일명을 가리킵니다 (예: `"LICENSE.md"`).
+- **디렉토리 구조에 `LICENSE.md` 선택 항목 추가**: `license`가 `"custom"`인 번들은 ZIP 루트에 라이선스 전문 파일을 포함해야 합니다.
+- **제6조 검증 규칙에 라이선스 검증 규칙(5번 항목) 추가**: `license` 값의 허용 범위 및 `custom` 지정 시 `license_file` 필수 여부를 명시하였습니다.
+
+---
+
 ## [v1.2.1] - 2026-07-12
 
 ### Added

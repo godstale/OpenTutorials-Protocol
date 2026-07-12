@@ -1,6 +1,6 @@
 # Open Tutorials Course Bundler Protocol Specification
 
-**Version:** 1.2.1  
+**Version:** 1.3.1  
 **Status:** Active  
 **Scope:** Open Tutorials Course Packaging & local execution
 
@@ -45,6 +45,7 @@ Open Tutorials 플랫폼에서 강좌 번들이 처리되고 데이터베이스�
 ├── config.json                     # 목차 및 카드 목록 스키마 설정 (필수)
 ├── wiki.md                         # 강좌 지식베이스 마크다운 파일 (필수)
 ├── thumbnail.png                   # 대표 썸네일 이미지 (선택, package-manifest.json에 매핑 가능)
+├── LICENSE.md                      # 라이선스 전문 및/또는 제3자 리소스 고지 (선택, license가 "custom"일 때 필수)
 ├── cards/                          # 강의 카드 디렉토리 (필수)
 │   ├── 01_intro.md                 # 마크다운 강의 카드
 │   └── 02_video.json               # 동영상 강의 카드 (JSON)
@@ -70,11 +71,42 @@ Open Tutorials 플랫폼에서 강좌 번들이 처리되고 데이터베이스�
 | `force_checkpoint` | Boolean | Optional | 특정 체크포인트를 지나야만 다음 단계 활성화 (기본값: `false`) | `false` |
 | `version` | String | Optional | 강좌 패키지 자체의 배포 버전 (기본값: `"1.0.0"`) | `"1.2.0"` |
 | `changelog` | String | Optional | 버전별 주요 변경 사항 (기본값: `"최초 릴리즈"`) | `"TOC 구조 최적화 및 3장 실습 추가"` |
-| `bundler_protocol_version` | String | **Mandatory** | 이 번들이 준수한 번들러 프로토콜 명세 버전 | `"1.2.1"` |
+| `bundler_protocol_version` | String | **Mandatory** | 이 번들이 준수한 번들러 프로토콜 명세 버전 | `"1.3.0"` |
 | `target_age` | String | **Mandatory** | 강좌 수강에 권장되는 대상 연령대 (`all` (전연령), `x+` (x세 이상), `min-max` (연령대 범위)) | `"all"`, `"10+"`, `"8-13"` |
 | `category` | String | **Mandatory** | 강좌의 대분류 카테고리 | `"Programming"`, `"Design"`, `"Marketing"`, `"Math"` |
 | `language` | String | Optional | 강좌 패키지의 주 언어 (기본값: `"ko"`) | `"ko"`, `"en"` |
 | `tags` | Array of String | Optional | 강좌의 성격을 나타내는 태그 목록 | `["아두이노", "IoT", "하드웨어"]` |
+| `license` | String | Optional | 강좌 콘텐츠에 적용되는 라이선스. 4.1.1절의 사전 정의 값 중 하나를 사용하거나, 직접 작성한 라이선스는 `"custom"`으로 지정 (기본값: `"all-rights-reserved"`) | `"CC-BY-4.0"`, `"all-rights-reserved"`, `"custom"` |
+| `license_file` | String | Conditional | `license`가 `"custom"`일 때 **Mandatory**. 그 외의 경우에도 4.1.2절의 제3자 리소스 고지가 필요하면 선택적으로 사용 가능. ZIP 루트에 포함된 라이선스/고지 파일명 | `"LICENSE.md"` |
+
+#### 4.1.1 라이선스(license) 사전 정의 목록
+
+강좌 제작자는 아래 사전 정의된 라이선스 중 하나를 `license` 필드에 지정할 수 있습니다. 크리에이티브 커먼즈(CC) 라이선스는 교육 콘텐츠 재사용 조건을 표준화된 방식으로 명시할 수 있어 강좌 콘텐츠에 권장되는 라이선스 체계입니다.
+
+| 값 | 명칭 | 설명 |
+| :--- | :--- | :--- |
+| `CC-BY-4.0` | CC BY 4.0 | 저작자 표시만 하면 상업적 이용, 변경, 재배포 모두 허용 |
+| `CC-BY-SA-4.0` | CC BY-SA 4.0 | 저작자 표시 + 동일조건변경허락(2차 저작물도 동일 라이선스로 배포) |
+| `CC-BY-NC-4.0` | CC BY-NC 4.0 | 저작자 표시 + 비영리 목적만 허용 |
+| `CC-BY-NC-SA-4.0` | CC BY-NC-SA 4.0 | 저작자 표시 + 비영리 + 동일조건변경허락 |
+| `CC-BY-ND-4.0` | CC BY-ND 4.0 | 저작자 표시 + 변경 금지(2차 저작물 제작 불가), 원본 그대로만 재배포 허용 |
+| `CC-BY-NC-ND-4.0` | CC BY-NC-ND 4.0 | 저작자 표시 + 비영리 + 변경 금지 (가장 제한적인 CC 라이선스) |
+| `CC0-1.0` | CC0 1.0 (퍼블릭 도메인 헌정) | 저작권을 포기하여 누구나 제한 없이 자유롭게 이용 가능 |
+| `all-rights-reserved` | 모든 권리 보유 (기본값) | 재배포·변형·공유 등 어떠한 재사용도 허용하지 않는 저작권 있는 콘텐츠. `license` 필드 생략 시 자동 적용되는 기본값 |
+| `custom` | 커스텀 라이선스 | 위 사전 정의 라이선스로 표현할 수 없는 자체 작성 라이선스. `license_file`에 지정한 파일(예: `LICENSE.md`)을 ZIP 루트에 반드시 포함해야 함 |
+
+> CC 라이선스 전문은 https://creativecommons.org/licenses/ 에서 확인할 수 있습니다.
+
+#### 4.1.2 제3자 리소스 고지 (Third-Party Resource Notices)
+
+다른 사람의 원저작물(책, 영상, 이미지, 오픈소스 코드 등)을 각색·인용·재구성하여 강좌를 제작한 경우, 그 리소스별 출처와 라이선스, 사용 조건, 주의사항을 학습자에게 별도로 고지해야 할 수 있습니다. 이 고지 내용은 `license_file`에 지정한 파일(권장 파일명: `LICENSE.md`)에 함께 포함시킬 수 있으며, `license` 값이 `"custom"`이 아니어도(예: `CC-BY-NC-4.0` 등 사전 정의 라이선스를 쓰는 경우에도) `license_file`을 선택적으로 첨부하여 아래 내용을 기재할 수 있습니다.
+
+- **원저작물 출처**: 원저작물의 제목, 저작자/제작자, 링크(가능한 경우)
+- **적용 라이선스 또는 이용 조건**: 원저작물이 자체적으로 명시한 라이선스 또는 이용 약관 (예: 특정 유튜브 채널 영상은 자체 저작권 하에 있으며 임베드만 허용되는 경우 등)
+- **각색/인용 범위**: 강좌 제작 과정에서 원저작물을 어느 정도로 각색·요약·인용했는지 (예: "영상 설명을 재구성한 문어체 해설이며 영상 자체는 원저작자 소유", "책의 특정 챕터 사례를 재구성함")
+- **주의사항**: 재배포, 상업적 활용, 2차 수정 등에 관해 학습자가 유의해야 할 제한 사항
+
+Open Tutorials 앱은 강좌 상세/정보 화면에서 `license` 값과 함께 `license_file`이 존재하면 그 내용을 그대로 노출하여, 학습자가 강좌에 포함된 리소스의 출처와 이용 조건을 확인할 수 있도록 합니다. 따라서 `license_file`은 단순 라이선스 전문뿐 아니라 위와 같은 고지 섹션을 포함하는 문서로 작성하는 것을 권장합니다.
 
 #### 작성자 정보(author) 스키마
 `author` 객체는 다음과 같은 하위 필드를 포함해야 합니다.
@@ -188,11 +220,12 @@ Open Tutorials 플랫폼에서 강좌 번들이 처리되고 데이터베이스�
   "force_checkpoint": false,
   "version": "1.0.0",
   "changelog": "최초 릴리즈",
-  "bundler_protocol_version": "1.2.1",
+  "bundler_protocol_version": "1.3.1",
   "target_age": "10+",
   "category": "Programming",
   "language": "ko",
-  "tags": ["Python", "AI", "Beginner"]
+  "tags": ["Python", "AI", "Beginner"],
+  "license": "CC-BY-4.0"
 }
 ```
 
@@ -217,6 +250,11 @@ Open Tutorials 플랫폼에서 강좌 번들이 처리되고 데이터베이스�
    - `video_info.video_id`는 반드시 존재하는 문자열여야 합니다.
    - `video_info.subtitles`가 포함될 경우 반드시 배열(Array) 타입이어야 합니다.
    - **(권장, 서버 미검증)** `subtitles` 각 원소는 `start`(초 단위 시작 시각) < `end`(초 단위 종료 시각) 관계를 만족하고 시간 순으로 정렬된 상태로 제작해야 합니다. 서버는 배열 타입 여부만 검증하므로, 순서가 어긋나거나 구간이 역전된 자막을 넣어도 업로드는 성공하지만 학습 화면의 "자막 탐색" 패널 하이라이트와 클릭 탐색(seek) 기능이 오작동합니다.
+5. **라이선스(`license`) 필드 검증**:
+   - `license` 필드를 명시하는 경우, 4.1.1절에 정의된 사전 정의 값(`CC-BY-4.0`, `CC-BY-SA-4.0`, `CC-BY-NC-4.0`, `CC-BY-NC-SA-4.0`, `CC-BY-ND-4.0`, `CC-BY-NC-ND-4.0`, `CC0-1.0`, `all-rights-reserved`) 또는 `"custom"` 중 하나여야 합니다. 그 외 임의 문자열은 검증 오류로 처리됩니다.
+   - `license` 필드를 생략하면 `"all-rights-reserved"`가 기본값으로 적용됩니다.
+   - `license`가 `"custom"`인 경우 `license_file` 필드가 반드시 존재해야 하며, 그 값이 가리키는 파일이 ZIP 루트에 실제로 포함되어 있어야 합니다. 누락 시 업로드가 거부됩니다.
+   - `license`가 `"custom"`이 아닌 경우 `license_file`은 필수는 아니지만, 4.1.2절의 제3자 리소스 고지가 필요하면 선택적으로 지정할 수 있습니다. 지정한 경우 그 값이 가리키는 파일이 ZIP 루트에 실제로 포함되어 있어야 합니다.
 
 ---
 
