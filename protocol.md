@@ -1,6 +1,6 @@
 # Open Tutorials Course Bundler Protocol Specification
 
-**Version:** 1.3.1  
+**Version:** 1.1.3  
 **Status:** Active  
 **Scope:** Open Tutorials Course Packaging & local execution
 
