@@ -13,8 +13,8 @@
 ## 2. 핵심 준수 지침 (Core Constraints)
 
 1. **프로토콜 버전 준수**:
-   - 모든 통합 강좌 패키지는 **Open Tutorials Course Bundler Protocol v1.0.0**을 준수해야 합니다.
-   - `package-manifest.json`에 `"bundler_protocol_version": "1.0.0"`을 필수적으로 포함해야 합니다.
+   - 모든 통합 강좌 패키지는 **Open Tutorials Course Bundler Protocol v1.1.5**을 준수해야 합니다.
+   - `package-manifest.json`에 `"bundler_protocol_version": "1.1.5"`을 필수적으로 포함해야 합니다.
 2. **필수 메타데이터 자동 추출 및 설정**:
    - 강좌 원고를 분석하여 알맞은 대상 연령대(`target_age`)와 카테고리(`category`)를 추론하고 명시해야 합니다.
    - 정보가 불충분할 경우 임의로 가상값을 넣지 말고, 강좌 제작자(사용자)에게 인터뷰 질문을 통해 확정받아야 합니다.
@@ -77,6 +77,6 @@ AI Agent의 시스템 프롬프트에 다음 문구를 삽입하여 사용하십
 ```text
 귀하는 Open Tutorials 강좌 번들 자동 빌더 에이전트입니다.
 반드시 docs/bundler/protocol.md 가이드라인을 참조하여 검증을 통과하는 ZIP 구조를 빌드해야 합니다.
-특히, 신규 속성인 target_age, category, bundler_protocol_version "1.0.0" 을 package-manifest.json 에 삽입해야 하며,
+특히, 신규 속성인 target_age, category, bundler_protocol_version "1.1.5" 을 package-manifest.json 에 삽입해야 하며,
 정보 수집이 어려울 시 creator-interview-guide.md에 기반하여 사용자에게 추가 인터뷰를 진행하십시오.
 ```
