@@ -1,6 +1,6 @@
 # Open Tutorials Course Bundler Protocol Specification
 
-**Version:** 1.1.5  
+**Version:** 1.2.0  
 **Status:** Active  
 **Scope:** Open Tutorials Course Packaging & local execution
 
@@ -20,7 +20,7 @@ Open Tutorials 플랫폼에서 강좌 번들이 처리되고 데이터베이스�
 
 1. **메타데이터 및 콘텐츠 기획**:
    - 강좌 카테고리, 대상 연령대, 학습 순서 제어 방식 등을 결정합니다.
-   - 메인 지식베이스가 될 `wiki.md`와 개별 학습 카드(`cards/*.md`)의 마크다운 및 동영상 콘텐츠를 설계합니다.
+   - 메인 지식베이스가 될 `wiki.md`와 개별 학습 카드(`cards/*.md`)의 마크다운, 동영상, 애니메이션·인터랙션 콘텐츠를 설계합니다.
 2. **패키지 매니페스트(`package-manifest.json`) 작성**:
    - 필수 프로토콜 항목(`bundler_protocol_version`, `target_age`, `category`)을 설정하고 제목 및 기본 정보를 정의합니다. (더 이상 개별 하위 강좌 리스트 `courses`는 지정하지 않습니다.)
 3. **패키지 구성 및 config.json 작성**:
@@ -48,8 +48,9 @@ Open Tutorials 플랫폼에서 강좌 번들이 처리되고 데이터베이스�
 ├── LICENSE.md                      # 라이선스 전문 및/또는 제3자 리소스 고지 (선택, license가 "custom"일 때 필수)
 ├── cards/                          # 강의 카드 디렉토리 (필수)
 │   ├── 01_intro.md                 # 마크다운 강의 카드
-│   └── 02_video.json               # 동영상 강의 카드 (JSON)
-└── images/                         # 마크다운 카드 내에서 참조하는 이미지 파일 폴더 (선택)
+│   ├── 02_video.json               # 동영상 강의 카드 (JSON)
+│   └── 03_animation.json           # 애니메이션·인터랙션 카드 (JSON)
+└── images/                         # 마크다운 카드 및 애니메이션 카드(image 요소)에서 참조하는 이미지 파일 폴더 (선택)
     └── schema.png
 ```
 
@@ -71,7 +72,7 @@ Open Tutorials 플랫폼에서 강좌 번들이 처리되고 데이터베이스�
 | `force_checkpoint` | Boolean | Optional | 특정 체크포인트를 지나야만 다음 단계 활성화 (기본값: `false`) | `false` |
 | `version` | String | Optional | 강좌 패키지 자체의 배포 버전 (기본값: `"1.0.0"`) | `"1.2.0"` |
 | `changelog` | String | Optional | 버전별 주요 변경 사항 (기본값: `"최초 릴리즈"`) | `"TOC 구조 최적화 및 3장 실습 추가"` |
-| `bundler_protocol_version` | String | **Mandatory** | 이 번들이 준수한 번들러 프로토콜 명세 버전 | `"1.1.5"` |
+| `bundler_protocol_version` | String | **Mandatory** | 이 번들이 준수한 번들러 프로토콜 명세 버전 | `"1.2.0"` |
 | `target_age` | String | **Mandatory** | 강좌 수강에 권장되는 대상 연령대 (`all` (전연령), `x+` (x세 이상), `min-max` (연령대 범위)) | `"all"`, `"10+"`, `"8-13"` |
 | `category` | String | **Mandatory** | 강좌의 대분류 카테고리 | `"Programming"`, `"Design"`, `"Marketing"`, `"Math"` |
 | `language` | String | Optional | 강좌 패키지의 주 언어 (기본값: `"ko"`) | `"ko"`, `"en"` |
@@ -200,6 +201,168 @@ Open Tutorials 앱은 강좌 상세/정보 화면에서 `license` 값과 함께 
 
 ---
 
+### 4.4 애니메이션·인터랙션 카드 JSON 스펙 (`cards/*.json`, `type: "animation"`)
+
+학습 카드가 도형·이미지·텍스트로 구성된 2D 애니메이션 또는 클릭 인터랙션(PPT식 슬라이드 진행, 다이어그램 단계별 조립, 클릭 시 반응 등)일 경우, 마크다운이나 동영상 카드 대신 이 절의 **"Scene/Slide JSON DSL"** 스펙을 따르는 구조화 JSON을 사용합니다.
+
+> 이 스펙은 **선언적 데이터**만 표현합니다. `<script>` 태그, 인라인 이벤트 핸들러, `javascript:` URI, 임의의 HTML/CSS 등 실행 가능한 코드는 이 카드 타입에 절대 포함될 수 없으며, 문자열 필드에 이러한 패턴이 발견되면 검증 오류로 거부됩니다(6장 참조). 실제로 애니메이션을 재생하는 코드는 카드 파일이 아니라 항상 플랫폼 앱(재생 엔진)에 고정 탑재된 신뢰 코드가 담당합니다 — "카드 = 데이터, 재생 코드 = 앱 소유" 원칙은 이 카드 타입에도 100% 동일하게 적용됩니다.
+
+```json
+{
+  "title": "반응 속도 개념 다이어그램",
+  "type": "animation",
+  "scene_info": {
+    "version": "1.0",
+    "canvas": { "width": 960, "height": 540, "background": "#ffffff" },
+    "slides": [
+      {
+        "id": "slide-1",
+        "elements": [
+          {
+            "id": "el-title",
+            "kind": "text",
+            "x": 60, "y": 40, "width": 600, "height": 80,
+            "content": "반응 속도란?",
+            "style": { "font_size": 36, "font_weight": "bold", "color": "#111827", "align": "left" },
+            "initial": { "opacity": 0 }
+          },
+          {
+            "id": "el-box-a",
+            "kind": "rect",
+            "x": 100, "y": 200, "width": 120, "height": 120,
+            "style": { "fill": "#10b981", "stroke": "#065f46", "stroke_width": 2, "corner_radius": 8 },
+            "initial": { "opacity": 0, "scale": 0.8 }
+          },
+          {
+            "id": "el-arrow",
+            "kind": "path",
+            "d": "M240 260 L360 260",
+            "style": { "stroke": "#374151", "stroke_width": 3 },
+            "initial": { "opacity": 0 }
+          },
+          {
+            "id": "el-diagram",
+            "kind": "image",
+            "x": 400, "y": 150, "width": 300, "height": 220,
+            "src": "images/reaction-diagram.png",
+            "initial": { "opacity": 0 }
+          }
+        ],
+        "steps": [
+          {
+            "trigger": "on_enter",
+            "actions": [
+              { "target": "el-title", "effect": "fade_in", "duration": 0.6, "delay": 0, "easing": "ease_out" }
+            ]
+          },
+          {
+            "trigger": "on_click",
+            "actions": [
+              { "target": "el-box-a", "effect": "fade_in", "duration": 0.5, "easing": "ease_out" },
+              { "target": "el-box-a", "effect": "scale_to", "to": 1.0, "duration": 0.5, "easing": "ease_out" }
+            ]
+          },
+          {
+            "trigger": "on_click",
+            "actions": [
+              { "target": "el-arrow", "effect": "draw_path", "duration": 0.8, "easing": "linear" }
+            ]
+          },
+          {
+            "trigger": "on_click",
+            "actions": [
+              { "target": "el-diagram", "effect": "fade_in", "duration": 0.6, "easing": "ease_out" }
+            ]
+          }
+        ],
+        "interactions": [
+          {
+            "event": "click",
+            "target": "el-box-a",
+            "action": { "effect": "highlight", "duration": 0.4 }
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+#### 4.4.1 최상위 구조
+
+| 필드명 | 타입 | 필수 여부 | 설명 |
+| :--- | :--- | :---: | :--- |
+| `title` | String | **Mandatory** | 카드의 제목 |
+| `type` | String | **Mandatory** | 반드시 `"animation"` 이어야 함 |
+| `scene_info` | Object | **Mandatory** | 씬 전체를 담는 컨테이너 객체 |
+| `scene_info.version` | String | Optional | DSL 자체의 스펙 버전 (기본값 `"1.0"`, 현재 유일한 값) |
+| `scene_info.canvas` | Object | **Mandatory** | 좌표계 기준이 되는 캔버스 크기/배경. `width`(Number), `height`(Number), `background`(String, CSS 색상값) 하위 필드를 가짐 |
+| `scene_info.slides` | Array | **Mandatory** | 카드 내부에서 순차 진행되는 슬라이드(페이지) 배열, 최소 1개 이상. 슬라이드 간 이동(이전/다음)은 학습 화면이 카드 자체의 컨트롤로 제공하며, TOC상의 챕터/카드 이동과는 별개의 카드 내부 단계임 |
+
+#### 4.4.2 슬라이드(`slides[]`) 구조
+
+| 필드명 | 타입 | 필수 여부 | 설명 |
+| :--- | :--- | :---: | :--- |
+| `id` | String | **Mandatory** | 카드 내에서 유일한 슬라이드 식별자 |
+| `elements` | Array | **Mandatory** | 해당 슬라이드에 배치되는 도형/이미지/텍스트 요소 목록 |
+| `steps` | Array | Optional | 슬라이드 진입 시 순서대로 재생되는 애니메이션 시퀀스(reveal.js의 fragment 리빌 패턴). 기본값: 빈 배열(정적 슬라이드) |
+| `interactions` | Array | Optional | `steps` 진행 여부와 무관하게, 특정 요소를 클릭했을 때 즉시 반응하는 독립적인 이벤트 바인딩 목록. 기본값: 빈 배열 |
+
+#### 4.4.3 요소(`elements[]`) 구조
+
+| 필드명 | 타입 | 필수 여부 | 설명 |
+| :--- | :--- | :---: | :--- |
+| `id` | String | **Mandatory** | 같은 슬라이드 내에서 유일한 요소 식별자. `steps`/`interactions`가 이 id로 요소를 참조함 |
+| `kind` | String | **Mandatory** | 요소의 종류. 아래 4.4.3.1의 허용 목록 중 하나여야 함 |
+| `x`, `y` | Number | **Mandatory** (`group` 제외) | 캔버스 좌표계 기준 위치(좌상단) |
+| `width`, `height` | Number | Conditional | `rect`/`image`/`text`/`group`은 필수. `circle`(반지름은 `style.radius`)/`path`/`line`/`polygon`은 불필요 |
+| `content` | String | Conditional | `kind: "text"`일 때 **Mandatory**. 표시할 순수 텍스트(마크다운·HTML 불가) |
+| `src` | String | Conditional | `kind: "image"`일 때 **Mandatory**. ZIP 루트의 `images/` 폴더 기준 상대경로 (예: `"images/diagram.png"`) |
+| `d` | String | Conditional | `kind: "path"`일 때 **Mandatory**. SVG `<path>`의 `d` 속성과 동일한 문법의 경로 데이터 |
+| `points` | String | Conditional | `kind: "line"` 또는 `"polygon"`일 때 **Mandatory**. `"x1,y1 x2,y2 ..."` 형식의 좌표 목록 |
+| `style` | Object | Optional | `fill`, `stroke`, `stroke_width`, `corner_radius`, `radius`(circle 전용), `font_size`, `font_weight`, `color`, `align` 등 kind별 시각 속성. 사전 정의된 CSS 색상값/숫자만 허용하며 임의 CSS 문자열(`url(...)`, `expression(...)` 등)은 금지 |
+| `initial` | Object | Optional | 슬라이드 진입 시점의 초기 상태(`opacity`(0~1), `scale`, `rotation`). 기본값은 `{ opacity: 1, scale: 1, rotation: 0 }`이며, `steps`로 이후 등장시킬 요소는 보통 `opacity: 0` 등으로 숨긴 상태에서 시작 |
+
+##### 4.4.3.1 `kind` 허용 목록
+
+`rect`, `circle`, `ellipse`, `line`, `path`, `polygon`, `text`, `image`, `group`
+
+#### 4.4.4 애니메이션 액션 (`steps[].actions[]`, `interactions[].action`)
+
+| 필드명 | 타입 | 필수 여부 | 설명 |
+| :--- | :--- | :---: | :--- |
+| `target` | String | **Mandatory** | 동작을 적용할 요소의 `id`. 반드시 같은 슬라이드의 `elements` 배열에 존재하는 id여야 함 |
+| `effect` | String | **Mandatory** | 아래 4.4.4.1 허용 목록 중 하나. 임의 문자열이나 커스텀 함수명은 금지 |
+| `to` | Number \| Object | Conditional | `move_to`(좌표 객체 `{x, y}`), `scale_to`(배율 Number), `rotate_to`(각도 Number)일 때 **Mandatory**인 목적값 |
+| `duration` | Number | Optional | 애니메이션 지속시간(초). 기본값 `0.5` |
+| `delay` | Number | Optional | 시작 지연시간(초). 기본값 `0` |
+| `easing` | String | Optional | `"linear"`, `"ease_in"`, `"ease_out"`, `"ease_in_out"` 중 하나. 기본값 `"ease_out"` |
+
+##### 4.4.4.1 `effect` 허용 목록
+
+| 값 | 설명 |
+| :--- | :--- |
+| `fade_in` / `fade_out` | 불투명도를 0↔1로 전환 |
+| `move_to` | 지정 좌표로 이동 |
+| `scale_to` | 지정 배율로 확대/축소 |
+| `rotate_to` | 지정 각도로 회전 |
+| `show` / `hide` | 트랜지션 없이 즉시 표시/숨김 |
+| `highlight` | 강조 펄스(외곽선/색상 플래시) 효과 |
+| `draw_path` | `kind: "path"` 요소 전용. 선이 그려지는 듯한 효과로 순차 노출 |
+
+> `morph_path`(경로 변형) 등 추가 효과는 향후 버전에서 확장 예약된 항목이며, 현재 v1.2.0 기준으로는 지원 목록에 없으므로 사용할 수 없습니다.
+
+#### 4.4.5 트리거(`steps[].trigger`)
+
+| 값 | 설명 |
+| :--- | :--- |
+| `on_enter` | 슬라이드가 화면에 표시되는 즉시 자동 재생 |
+| `on_click` | 사용자가 화면(또는 카드가 제공하는 "다음" 컨트롤)을 클릭해야 다음 단계로 진행 (reveal.js의 fragment 클릭 리빌과 동일한 모델) |
+
+`interactions[].event`는 현재 `"click"` 값만 지원합니다.
+
+---
+
 ## 5. 제작 예시 (Implementation Example)
 
 ### 5.1 package-manifest.json 예시
@@ -220,7 +383,7 @@ Open Tutorials 앱은 강좌 상세/정보 화면에서 `license` 값과 함께 
   "force_checkpoint": false,
   "version": "1.0.0",
   "changelog": "최초 릴리즈",
-  "bundler_protocol_version": "1.1.5",
+  "bundler_protocol_version": "1.2.0",
   "target_age": "10+",
   "category": "Programming",
   "language": "ko",
@@ -255,6 +418,17 @@ Open Tutorials 앱은 강좌 상세/정보 화면에서 `license` 값과 함께 
    - `license` 필드를 생략하면 `"all-rights-reserved"`가 기본값으로 적용됩니다.
    - `license`가 `"custom"`인 경우 `license_file` 필드가 반드시 존재해야 하며, 그 값이 가리키는 파일이 ZIP 루트에 실제로 포함되어 있어야 합니다. 누락 시 업로드가 거부됩니다.
    - `license`가 `"custom"`이 아닌 경우 `license_file`은 필수는 아니지만, 4.1.2절의 제3자 리소스 고지가 필요하면 선택적으로 지정할 수 있습니다. 지정한 경우 그 값이 가리키는 파일이 ZIP 루트에 실제로 포함되어 있어야 합니다.
+6. **애니메이션 카드(`cards/*.json`, `type: "animation"`) 스키마 검증**:
+   - `title`(String)이 누락되면 업로드가 거부됩니다. `type`은 반드시 문자열 `"animation"`이어야 합니다.
+   - `scene_info` 객체와 그 하위 `scene_info.canvas`(`width`/`height`), `scene_info.slides`(최소 1개 이상의 배열)가 반드시 존재해야 합니다.
+   - 각 슬라이드의 `id`는 카드 내에서 유일해야 하며, 각 슬라이드 `elements[].id`는 같은 슬라이드 내에서 유일해야 합니다.
+   - `elements[].kind`는 4.4.3.1절의 허용 목록(`rect`, `circle`, `ellipse`, `line`, `path`, `polygon`, `text`, `image`, `group`) 중 하나가 아니면 거부됩니다.
+   - `kind: "image"` 요소의 `src`가 가리키는 파일은 ZIP의 `images/` 폴더 내에 실제로 존재해야 합니다(동영상 카드의 `video_id` 실존 검증과 동일한 원칙).
+   - `steps[].actions[].target`과 `interactions[].target`은 반드시 같은 슬라이드의 `elements[].id` 중 하나를 참조해야 하며, 정의되지 않은 id를 참조하면 거부됩니다.
+   - `steps[].actions[].effect`와 `interactions[].action.effect`는 4.4.4.1절의 허용 목록(`fade_in`, `fade_out`, `move_to`, `scale_to`, `rotate_to`, `show`, `hide`, `highlight`, `draw_path`) 중 하나가 아니면 거부됩니다. `morph_path` 등 미지원 값도 거부 대상입니다.
+   - `steps[].trigger`는 `"on_enter"` 또는 `"on_click"`, `interactions[].event`는 `"click"`만 허용됩니다.
+   - 4.4.3절과 4.4.4절에서 kind/effect별 **Mandatory**·Conditional로 선언된 필드가 누락되면 거부됩니다: `kind: "text"`의 `content`, `kind: "image"`의 `src`, `kind: "path"`의 `d`, `kind: "line"`/`"polygon"`의 `points`, `group` 외 요소의 `x`/`y`, `effect: "move_to"`/`"scale_to"`/`"rotate_to"`의 `to`.
+   - **보안 검증(카드=데이터 원칙)**: `content`, `style`의 모든 문자열 값, `src`, `d`, `points` 등 텍스트 필드 어디에도 `<script`, `on\w+=`(인라인 이벤트 핸들러), `javascript:` 패턴이 포함되어서는 안 되며, 발견 시 즉시 업로드가 거부됩니다.
 
 ---
 

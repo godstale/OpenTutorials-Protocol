@@ -4,6 +4,19 @@
 
 ---
 
+## [v1.2.0] - 2026-07-30
+
+### Added
+- **신규 학습 카드 타입 `type: "animation"` 도입 (제4.4절 신설)**: 텍스트 카드(`.md`), 동영상 카드(`.json`, `type: "video"`)에 이어 세 번째 카드 타입으로 **2D 애니메이션·인터랙션 카드**를 추가하였습니다. 도형(`rect`/`circle`/`ellipse`/`line`/`path`/`polygon`)·이미지·텍스트 요소와, 슬라이드 진입 시 자동/클릭으로 순차 재생되는 애니메이션 시퀀스(`steps`), 클릭 시 즉시 반응하는 독립 인터랙션(`interactions`)을 선언적 JSON으로 표현하는 **자체 "Scene/Slide" DSL**을 정의하였습니다. (배경: `docs/2d-animation-vivo-studio-review.md` — Lottie/Rive는 AI 에이전트가 직접 저작하기 어려운 포맷이라 채택하지 않고, 이 프로젝트가 이미 채택 중인 "카드 = 검증 가능한 JSON 데이터" 패턴을 그대로 확장하는 방향으로 결정)
+  - `scene_info.canvas`, `scene_info.slides[]`, `elements[]`(`kind` 허용 목록: `rect`/`circle`/`ellipse`/`line`/`path`/`polygon`/`text`/`image`/`group`), `steps[].actions[]`(`effect` 허용 목록: `fade_in`/`fade_out`/`move_to`/`scale_to`/`rotate_to`/`show`/`hide`/`highlight`/`draw_path`), `interactions[]` 스키마를 신설하였습니다.
+  - `kind: "image"` 요소는 마크다운 카드와 동일하게 ZIP 루트의 `images/` 폴더를 참조합니다(제3장 디렉토리 구조 다이어그램에 `03_animation.json` 예시 추가).
+- **제6조 검증 규칙에 애니메이션 카드 스키마 검증(6번 항목) 추가**: `scene_info` 필수 필드 존재 여부, 요소/액션 id 참조 무결성, `kind`/`effect`/`trigger`/`event` allowlist 위반 검증, `images/` 실존 검증에 더해 **보안 검증**(`<script`, 인라인 이벤트 핸들러, `javascript:` 패턴 등 실행 가능 코드 삽입 금지)을 명시하였습니다. 이는 "카드는 항상 데이터, 재생 코드는 항상 앱 소유"라는 기존 보안 원칙을 신규 카드 타입에도 동일하게 적용하기 위함입니다.
+
+### Changed
+- 문서 최상단 프로토콜 버전을 `1.1.5` → `1.2.0`으로 갱신하였습니다.
+
+---
+
 ## [v1.1.5] - 2026-07-12
 
 ### Added
