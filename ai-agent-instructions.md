@@ -66,6 +66,7 @@ graph TD
 - 마크다운 카드는 상호작용 가능한 학습 콘텐츠로 작성합니다. 마크다운과 코드 블록을 적극 활용하십시오.
 - 동영상 카드는 `protocol.md` 4.3절 스키마에 맞춰 `title`, `type: "video"`, `video_info`(`provider`, `video_id`, 선택적 `duration_seconds`, `subtitles`)를 작성합니다. `subtitles`는 실제 영상 타임라인 기준으로만 채우고, 정보가 없으면 빈 배열로 두거나 필드 자체를 생략하십시오.
 - 애니메이션 카드는 `protocol.md` 4.4절 스키마에 맞춰 `title`, `type: "animation"`, `scene_info.canvas`, `scene_info.slides[]`(`elements`/`steps`/`interactions`)를 작성합니다. `kind`/`effect`/`trigger`/`event` 값은 반드시 허용 목록 안에서만 선택하고, 실행 가능한 코드는 절대 삽입하지 않습니다(2장 6번 항목 참조).
+- `kind: "text"` 요소의 `width`/`height`를 텍스트 길이에 맞춰 픽셀 단위로 정확히 역산하려 하지 마십시오. 재생 엔진이 4.4.3.2절의 자동맞춤(줄바꿈·폰트 축소·수직 정렬) 규칙을 적용하므로, 박스 크기는 넉넉하게 잡고 `content`만 정확히 작성하면 됩니다. 의도적으로 한 줄 고정 렌더링이 필요한 경우에만 `style.wrap: false`를 명시하십시오.
 
 #### 4단계: 자가 검증 (Self-Verification)
 - ZIP 패키징 전 아래 스크립트 로직을 머릿속으로 혹은 가상 실행하여 검증하십시오.
@@ -79,6 +80,7 @@ graph TD
   - 애니메이션 카드의 `steps[].actions[].target`/`interactions[].target`이 같은 슬라이드의 `elements[].id` 중 하나를 정확히 가리키는가?
   - 애니메이션 카드의 `kind: "image"` 요소가 가리키는 `src` 파일이 `images/` 폴더에 실제로 포함되어 있는가?
   - 애니메이션 카드의 문자열 필드 어디에도 `<script`, 인라인 이벤트 핸들러, `javascript:` 같은 실행 가능 코드 패턴이 없는가?
+  - 애니메이션 카드의 `kind: "text"` 요소에서 `style.overflow: "visible"`을 남용해 텍스트가 박스 밖으로 넘치도록 방치하지 않았는가? (기본값 `"shrink"`를 그대로 두는 것을 권장)
 
 ---
 
@@ -89,7 +91,7 @@ AI Agent의 시스템 프롬프트에 다음 문구를 삽입하여 사용하십
 ```text
 귀하는 Open Tutorials 강좌 번들 자동 빌더 에이전트입니다.
 반드시 docs/bundler/protocol.md 가이드라인을 참조하여 검증을 통과하는 ZIP 구조를 빌드해야 합니다.
-특히, 신규 속성인 target_age, category, bundler_protocol_version "1.2.0" 을 package-manifest.json 에 삽입해야 하며,
+특히, 신규 속성인 target_age, category, bundler_protocol_version "1.3.0" 을 package-manifest.json 에 삽입해야 하며,
 정보 수집이 어려울 시 creator-interview-guide.md에 기반하여 사용자에게 추가 인터뷰를 진행하십시오.
 단원별로 마크다운(.md) / 동영상(.json, type: "video") / 애니메이션·인터랙션(.json, type: "animation") 중
 콘텐츠 성격에 맞는 카드 타입을 선택하고, 애니메이션 카드는 protocol.md 4.4절 스키마와 allowlist를 엄격히 준수하며
