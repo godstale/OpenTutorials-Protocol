@@ -1,6 +1,6 @@
 # Open Tutorials Course Bundler Protocol Specification
 
-**Version:** 1.2.0  
+**Version:** 1.3.0  
 **Status:** Active  
 **Scope:** Open Tutorials Course Packaging & local execution
 
@@ -320,12 +320,26 @@ Open Tutorials 앱은 강좌 상세/정보 화면에서 `license` 값과 함께 
 | `src` | String | Conditional | `kind: "image"`일 때 **Mandatory**. ZIP 루트의 `images/` 폴더 기준 상대경로 (예: `"images/diagram.png"`) |
 | `d` | String | Conditional | `kind: "path"`일 때 **Mandatory**. SVG `<path>`의 `d` 속성과 동일한 문법의 경로 데이터 |
 | `points` | String | Conditional | `kind: "line"` 또는 `"polygon"`일 때 **Mandatory**. `"x1,y1 x2,y2 ..."` 형식의 좌표 목록 |
-| `style` | Object | Optional | `fill`, `stroke`, `stroke_width`, `corner_radius`, `radius`(circle 전용), `font_size`, `font_weight`, `color`, `align` 등 kind별 시각 속성. 사전 정의된 CSS 색상값/숫자만 허용하며 임의 CSS 문자열(`url(...)`, `expression(...)` 등)은 금지 |
+| `style` | Object | Optional | `fill`, `stroke`, `stroke_width`, `corner_radius`, `radius`(circle 전용), `font_size`, `font_weight`, `color`, `align` 등 kind별 시각 속성. 사전 정의된 CSS 색상값/숫자만 허용하며 임의 CSS 문자열(`url(...)`, `expression(...)` 등)은 금지. `kind: "text"`의 자동맞춤 관련 하위 필드(`wrap`, `min_font_size`, `overflow`, `vertical_align`, `line_height`)는 4.4.3.2절 참조 |
 | `initial` | Object | Optional | 슬라이드 진입 시점의 초기 상태(`opacity`(0~1), `scale`, `rotation`). 기본값은 `{ opacity: 1, scale: 1, rotation: 0 }`이며, `steps`로 이후 등장시킬 요소는 보통 `opacity: 0` 등으로 숨긴 상태에서 시작 |
 
 ##### 4.4.3.1 `kind` 허용 목록
 
 `rect`, `circle`, `ellipse`, `line`, `path`, `polygon`, `text`, `image`, `group`
+
+##### 4.4.3.2 텍스트 자동맞춤(Text Auto-Fit) 규칙 (v1.3.0 신설)
+
+`kind: "text"` 요소는 `width`/`height`가 지정된 하나의 바운딩 박스로 취급되며, 이 프로토콜을 구현하는 모든 재생 엔진(Vivo Academy, Vivo Studio 프리뷰 등)은 아래 규칙에 따라 텍스트가 박스를 벗어나지 않도록 **반드시** 자동맞춤 렌더링을 수행해야 합니다. 저작 도구나 이를 조작하는 AI 에이전트가 `content` 길이에 맞춰 `width`/`height`/`font_size`를 픽셀 단위로 정확히 역산할 필요는 없으며, 박스 크기는 넉넉하게 지정하는 것으로 충분합니다.
+
+| `style` 필드 | 타입 | 필수 여부 | 설명 |
+| :--- | :--- | :---: | :--- |
+| `wrap` | Boolean | Optional | 기본값 `true`. `width`가 지정된 경우 텍스트를 해당 폭 내에서 단어/음절 단위로 자동 줄바꿈합니다. `false`로 지정하면 줄바꿈 없이 한 줄로 강제 렌더링합니다(레거시 v1.2.0 이하와 동일한 동작이며, 이 경우 오버플로우는 저작자 책임입니다) |
+| `min_font_size` | Number | Optional | 기본값 `12`. 줄바꿈 후에도 텍스트가 `height`를 벗어나면, 렌더러는 `font_size`부터 이 값까지 점진적으로 축소하며 재차 줄바꿈을 시도합니다. 같은 요소의 `font_size`보다 큰 값은 무효(검증 오류, 6장 참조) |
+| `overflow` | String | Optional | 기본값 `"shrink"`. `"shrink"`(줄바꿈 + 폰트 축소를 모두 시도한 뒤에도 남는 초과분은 자름), `"clip"`(자동맞춤 없이 박스 경계에서 즉시 자름 — 의도적으로 고정 크기를 원할 때 사용), `"visible"`(박스를 무시하고 원래 크기로 표시 — 레거시 호환용, 신규 카드에서는 사용을 권장하지 않음) 중 하나 |
+| `vertical_align` | String | Optional | 기본값 `"middle"`. `height` 박스 내 텍스트의 수직 위치. `"top"`/`"middle"`/`"bottom"` 중 하나 |
+| `line_height` | Number | Optional | 기본값 `1.3`. 줄바꿈된 각 줄 사이의 행간 배수 |
+
+> **배경**: v1.2.0 초기 구현에서 `align`은 수평 정렬만 담당했고 줄바꿈·수직 정렬·자동 축소 개념이 없어, AI 에이전트가 생성한 애니메이션 카드에서 박스보다 긴 텍스트가 그대로 삐져나오거나 잘리는 품질 문제가 다수 발견되었습니다. 이 절은 "저작자가 좌표를 완벽히 계산해야만 정상 렌더링된다"는 취약한 전제를 제거하고, 텍스트 배치 정합성의 책임을 저작자(및 이를 대신하는 AI 에이전트)에서 재생 엔진으로 이전하기 위해 신설되었습니다.
 
 #### 4.4.4 애니메이션 액션 (`steps[].actions[]`, `interactions[].action`)
 
@@ -383,7 +397,7 @@ Open Tutorials 앱은 강좌 상세/정보 화면에서 `license` 값과 함께 
   "force_checkpoint": false,
   "version": "1.0.0",
   "changelog": "최초 릴리즈",
-  "bundler_protocol_version": "1.2.0",
+  "bundler_protocol_version": "1.3.0",
   "target_age": "10+",
   "category": "Programming",
   "language": "ko",
@@ -429,6 +443,7 @@ Open Tutorials 앱은 강좌 상세/정보 화면에서 `license` 값과 함께 
    - `steps[].trigger`는 `"on_enter"` 또는 `"on_click"`, `interactions[].event`는 `"click"`만 허용됩니다.
    - 4.4.3절과 4.4.4절에서 kind/effect별 **Mandatory**·Conditional로 선언된 필드가 누락되면 거부됩니다: `kind: "text"`의 `content`, `kind: "image"`의 `src`, `kind: "path"`의 `d`, `kind: "line"`/`"polygon"`의 `points`, `group` 외 요소의 `x`/`y`, `effect: "move_to"`/`"scale_to"`/`"rotate_to"`의 `to`.
    - **보안 검증(카드=데이터 원칙)**: `content`, `style`의 모든 문자열 값, `src`, `d`, `points` 등 텍스트 필드 어디에도 `<script`, `on\w+=`(인라인 이벤트 핸들러), `javascript:` 패턴이 포함되어서는 안 되며, 발견 시 즉시 업로드가 거부됩니다.
+   - **텍스트 자동맞춤(4.4.3.2절) 검증**: `kind: "text"` 요소의 `style.overflow`가 지정된 경우 `"shrink"`/`"clip"`/`"visible"` 중 하나가 아니면 거부됩니다. `style.vertical_align`이 지정된 경우 `"top"`/`"middle"`/`"bottom"` 중 하나가 아니면 거부됩니다. `style.min_font_size`가 지정된 경우 Number여야 하며, 같은 요소의 `style.font_size`보다 크면(축소 하한이 원본보다 큰 무의미한 값) 거부됩니다.
 
 ---
 

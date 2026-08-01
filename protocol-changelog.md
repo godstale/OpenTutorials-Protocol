@@ -4,6 +4,17 @@
 
 ---
 
+## [v1.3.0] - 2026-08-01
+
+### Added
+- **애니메이션 카드 `kind: "text"` 요소에 자동맞춤(Auto-Fit) 스타일 필드 신설 (제4.4.3.2절)**: `style.wrap`(자동 줄바꿈, 기본 `true`), `style.min_font_size`(자동 축소 하한, 기본 `12`), `style.overflow`(`"shrink"`/`"clip"`/`"visible"`, 기본 `"shrink"`), `style.vertical_align`(`"top"`/`"middle"`/`"bottom"`, 기본 `"middle"`), `style.line_height`(행간 배수, 기본 `1.3`)를 추가하였습니다. 이 프로토콜을 구현하는 모든 재생 엔진은 텍스트가 지정된 박스(`width`/`height`)를 벗어나지 않도록 자동 줄바꿈·폰트 축소·수직 정렬을 수행할 정합성 의무를 갖습니다. (배경: AI 에이전트가 생성한 애니메이션 카드에서 박스 대비 텍스트가 넘치거나 잘리는 품질 문제가 Vivo Studio 실사용 테스트에서 다수 발견되어, 저작자가 픽셀 단위로 텍스트 크기를 역산해야 하는 취약한 전제를 없애고 렌더러가 자동으로 맞추도록 책임을 이전함)
+- **제6조 검증 규칙에 auto-fit 필드 검증 추가**: `style.overflow`/`style.vertical_align` allowlist 위반 검증, `style.min_font_size > style.font_size`인 경우의 거부 규칙을 명시하였습니다.
+
+### Changed
+- 문서 최상단 프로토콜 버전을 `1.2.0` → `1.3.0`으로 갱신하였습니다.
+
+---
+
 ## [v1.2.0] - 2026-07-30
 
 ### Added
