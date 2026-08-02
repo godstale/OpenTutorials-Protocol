@@ -4,6 +4,26 @@
 
 ---
 
+## [v2.0.0] - 2026-08-02
+
+### Breaking Changes
+- **마크다운(`.md`)/동영상(`.json`, `type:"video"`)/애니메이션·인터랙션(`.json`, `type:"animation"`) 3종 카드 구분을 폐지하고 단일 "강좌 카드"로 통합했습니다.** 모든 학습 카드는 `cards/*.md` 파일 하나이며, `cards/` 아래 `.json` 카드는 더 이상 허용되지 않습니다(제6조 2번 항목).
+- **카드 파일에 YAML 유사 frontmatter(`title`/`theme`/`background`/`foreground`)를 추가했습니다** (제4.3.1절). `config.json`에도 강좌 전체 기본값인 `card_style` 객체가 신설되었습니다(제4.2.1절).
+- **동영상·모션(옛 애니메이션)·Lottie는 독립 카드가 아니라 마크다운 본문 임베드 블록으로 재정의되었습니다**: 펜스 코드 블록의 언어 식별자를 `vivo:video`/`vivo:motion`/`vivo:lottie`로 지정하고 그 안에 JSON 페이로드를 작성합니다(제4.3.2~4.3.6절). `vivo:motion`은 기존 v1.x 애니메이션 카드의 단일 슬라이드 구조(`canvas`/`elements`/`steps`/`interactions`)를 그대로 재사용하되, 멀티 슬라이드 대신 임베드를 여러 번 배치하는 모델로 전환했습니다.
+- **Lottie 애니메이션을 신규 임베드 타입으로 추가했습니다**(`vivo:lottie`, 제4.3.5절): 인라인 데이터는 금지되고 `assets/lottie/`의 외부 JSON 파일만 참조 가능하며, expressions(임의 JS)가 포함된 파일은 검증 오류로 거부됩니다.
+- **디렉토리 구조에 `assets/motion/`·`assets/lottie/` 폴더가 신설되었습니다**(제3장). `vivo:motion`/`vivo:lottie`가 외부 파일을 참조할 때 사용합니다.
+- 기존 v1.x 카드 스키마(동영상/애니메이션 `.json` 카드)는 삭제되지 않고 **부록 A "Legacy v1.x 카드 포맷"으로 강등**되었습니다. `bundler_protocol_version`의 major가 `1`인 기존 배포 강좌는 계속 재생 가능하나, 신규 제작에는 사용할 수 없습니다.
+
+### Migration Notes
+- 기배포 v1.x 강좌는 변환 없이 그대로 유지·재생됩니다(하위 호환). 신규 강좌 제작 시에만 v2.0.0 스키마를 사용합니다.
+- 기존 v1.x `type:"video"` 카드는 "제목 + `vivo:video` 임베드 하나"짜리 `.md` 파일로, `type:"animation"` 카드는 "제목 + `vivo:motion` 임베드 하나"짜리 `.md` 파일로 기계적으로 변환 가능합니다(자동 변환기는 별도 과제).
+- 제6조 검증 규칙에 frontmatter 검증(4번)과 임베드 블록 검증(5번)이 신설되었고, 기존 애니메이션 카드 검증 로직(`kind`/`effect`/`trigger`/`event` allowlist, id 참조 무결성, `images/` 실존 검사, 스크립트 삽입 금지)은 `vivo:motion` 임베드 검증(5번)과 레거시 애니메이션 카드 검증(7번, 부록 A)에서 공통으로 재사용됩니다.
+
+### Changed
+- 문서 최상단 프로토콜 버전을 `1.3.0` → `2.0.0`으로 갱신하였습니다.
+
+---
+
 ## [v1.3.0] - 2026-08-01
 
 ### Added
