@@ -1,6 +1,6 @@
 # Open Tutorials Course Bundler Protocol Specification
 
-**Version:** 2.0.0
+**Version:** 1.4.0
 **Status:** Active
 **Scope:** Open Tutorials Course Packaging & local execution
 
@@ -12,7 +12,7 @@
 
 이 프로토콜은 온디바이스 로컬 실행 환경(`db.json` 및 `public/courses`)과의 완벽한 호환을 보장하며, AI Agent 기반의 자동 강좌 제작 프로젝트에서 참조하여 강좌 파일을 무결성 있게 제작하기 위한 공식 가이드라인입니다.
 
-> **v2.0.0 변경 요지 (Breaking Change):** v1.x까지 존재했던 마크다운(`.md`)/동영상(`.json`, `type:"video"`)/애니메이션·인터랙션(`.json`, `type:"animation"`) 3종 카드 구분을 폐지하고, 모든 학습 카드를 **단일 "강좌 카드"**(`cards/*.md` + YAML frontmatter + 임베드 블록)로 통합합니다. 동영상·모션(애니메이션)·Lottie는 더 이상 독립된 카드 파일이 아니라, 마크다운 본문 흐름 중 원하는 위치에 삽입하는 **임베드 컴포넌트**입니다. 자세한 사항은 4장을, v1.x 레거시 스키마는 부록 A를 참조하십시오.
+> **v1.4.0 변경 요지 (Breaking Change):** v1.3.0 이하까지 존재했던 마크다운(`.md`)/동영상(`.json`, `type:"video"`)/애니메이션·인터랙션(`.json`, `type:"animation"`) 3종 카드 구분을 폐지하고, 모든 학습 카드를 **단일 "강좌 카드"**(`cards/*.md` + YAML frontmatter + 임베드 블록)로 통합합니다. 동영상·모션(애니메이션)·Lottie는 더 이상 독립된 카드 파일이 아니라, 마크다운 본문 흐름 중 원하는 위치에 삽입하는 **임베드 컴포넌트**입니다. 자세한 사항은 4장을, v1.3.0 이하 레거시 스키마는 부록 A를 참조하십시오.
 
 ---
 
@@ -48,7 +48,7 @@ Open Tutorials 플랫폼에서 강좌 번들이 처리되고 데이터베이스�
 ├── wiki.md                         # 강좌 지식베이스 마크다운 파일 (필수)
 ├── thumbnail.png                   # 대표 썸네일 이미지 (선택, package-manifest.json에 매핑 가능)
 ├── LICENSE.md                      # 라이선스 전문 및/또는 제3자 리소스 고지 (선택, license가 "custom"일 때 필수)
-├── cards/                          # 강의 카드 디렉토리 (필수, .md/.mdx 파일만 허용 — .json 카드는 v2.0.0부터 금지)
+├── cards/                          # 강의 카드 디렉토리 (필수, .md/.mdx 파일만 허용 — .json 카드는 v1.4.0부터 금지)
 │   ├── 01_intro.md                 # 강좌 카드 (frontmatter + 본문, 동영상/모션/Lottie 임베드 포함 가능)
 │   └── 02_concept.md
 ├── images/                         # 강좌 카드 및 vivo:motion 임베드(image 요소)에서 참조하는 비트맵/SVG 이미지 폴더 (선택)
@@ -60,7 +60,7 @@ Open Tutorials 플랫폼에서 강좌 번들이 처리되고 데이터베이스�
         └── intro.json
 ```
 
-> **레거시(v1.x) 구조:** `bundler_protocol_version`의 major가 `1`인 번들은 `cards/` 아래 `.json`(`type:"video"`/`type:"animation"`) 카드를 계속 포함할 수 있습니다. 부록 A를 참조하십시오. 이 폴더 구조는 v2.0.0(신규 제작)에만 적용됩니다.
+> **레거시(v1.3.0 이하) 구조:** `bundler_protocol_version`이 `1.3.0` 이하인 번들은 `cards/` 아래 `.json`(`type:"video"`/`type:"animation"`) 카드를 계속 포함할 수 있습니다. 부록 A를 참조하십시오. 이 폴더 구조는 v1.4.0(신규 제작)에만 적용됩니다.
 
 ---
 
@@ -80,7 +80,7 @@ Open Tutorials 플랫폼에서 강좌 번들이 처리되고 데이터베이스�
 | `force_checkpoint` | Boolean | Optional | 특정 체크포인트를 지나야만 다음 단계 활성화 (기본값: `false`) | `false` |
 | `version` | String | Optional | 강좌 패키지 자체의 배포 버전 (기본값: `"1.0.0"`) | `"1.2.0"` |
 | `changelog` | String | Optional | 버전별 주요 변경 사항 (기본값: `"최초 릴리즈"`) | `"TOC 구조 최적화 및 3장 실습 추가"` |
-| `bundler_protocol_version` | String | **Mandatory** | 이 번들이 준수한 번들러 프로토콜 명세 버전. major가 `2` 이상이면 4장의 단일 강좌 카드 스키마가, `1`이면 부록 A의 레거시 스키마가 적용됩니다 | `"2.0.0"` |
+| `bundler_protocol_version` | String | **Mandatory** | 이 번들이 준수한 번들러 프로토콜 명세 버전. 버전이 `1.4.0` 이상이면 4장의 단일 강좌 카드 스키마가, `1.3.0` 이하이면 부록 A의 레거시 스키마가 적용됩니다 | `"1.4.0"` |
 | `target_age` | String | **Mandatory** | 강좌 수강에 권장되는 대상 연령대 (`all` (전연령), `x+` (x세 이상), `min-max` (연령대 범위)) | `"all"`, `"10+"`, `"8-13"` |
 | `category` | String | **Mandatory** | 강좌의 대분류 카테고리 | `"Programming"`, `"Design"`, `"Marketing"`, `"Math"` |
 | `language` | String | Optional | 강좌 패키지의 주 언어 (기본값: `"ko"`) | `"ko"`, `"en"` |
@@ -168,10 +168,10 @@ Open Tutorials 앱은 강좌 상세/정보 화면에서 `license` 값과 함께 
 | `type` | String | **Mandatory** | 노드의 성격 (`chapter`, `section`, `subsection` 중 하나) |
 | `title` | String | **Mandatory** | 목차에 렌더링될 실제 한글/외국어 제목 (파일명과 달라야 함). 카드 frontmatter의 `title`보다 이 값이 우선 적용되는 소스 오브 트루스입니다(4.3.1절 참조) |
 | `description` | String | **Mandatory** | 해당 단원의 요약 설명 (기본 템플릿 값 방치 금지) |
-| `filename` | String | Conditional | 말단 노드(`section` 또는 `subsection`)인 경우 연결될 강좌 카드 파일명. `bundler_protocol_version` major가 `2` 이상이면 `.md`/`.mdx`만 허용됩니다(예: `"01_intro.md"`). major가 `1`인 레거시 번들은 부록 A의 `.json` 카드도 허용됩니다 |
+| `filename` | String | Conditional | 말단 노드(`section` 또는 `subsection`)인 경우 연결될 강좌 카드 파일명. `bundler_protocol_version`이 `1.4.0` 이상이면 `.md`/`.mdx`만 허용됩니다(예: `"01_intro.md"`). `1.3.0` 이하인 레거시 번들은 부록 A의 `.json` 카드도 허용됩니다 |
 | `children` | Array | Conditional | 상위 노드(`chapter` 등)인 경우 하위 TOC 노드 배열 |
 
-#### 4.2.1 card_style (강좌 기본 카드 스타일, v2.0.0 신설)
+#### 4.2.1 card_style (강좌 기본 카드 스타일, v1.4.0 신설)
 
 `config.json` 최상위에 선택적으로 `card_style` 객체를 지정하여 강좌 전체 카드의 기본 테마/배색을 정의할 수 있습니다. 개별 카드 파일의 frontmatter(4.3.1절)가 지정한 값은 이 기본값을 오버라이드합니다.
 
@@ -185,9 +185,9 @@ Open Tutorials 앱은 강좌 상세/정보 화면에서 `license` 값과 함께 
 
 ---
 
-### 4.3 강좌 카드 스펙 (단일 카드, `cards/*.md`) — v2.0.0
+### 4.3 강좌 카드 스펙 (단일 카드, `cards/*.md`) — v1.4.0
 
-모든 학습 카드는 **마크다운 문서 하나**입니다. 과거 동영상 전용이던 카드도 "제목 + 동영상 임베드 한 개"로 구성된 `.md` 문서로 표현합니다. `cards/` 아래 `.json` 카드 파일은 v2.0.0에서 금지됩니다(부록 A 참조).
+모든 학습 카드는 **마크다운 문서 하나**입니다. 과거 동영상 전용이던 카드도 "제목 + 동영상 임베드 한 개"로 구성된 `.md` 문서로 표현합니다. `cards/` 아래 `.json` 카드 파일은 v1.4.0에서 금지됩니다(부록 A 참조).
 
 #### 4.3.1 Frontmatter
 
@@ -230,7 +230,7 @@ foreground: "#e2e8f0"
 ```
 
 - 이 문법을 모르는 일반 마크다운 뷰어(GitHub 등)에서는 그냥 코드 블록으로 표시되어 본문이 깨지지 않습니다. Open Tutorials 재생 앱(및 Vivo Studio 미리보기)만 `vivo:*` 언어 식별자를 감지해 실제 임베드 컴포넌트로 치환합니다. 7.3절(코드 블록 가이드라인)의 일반 구문 강조 코드 블록과는 별개의 처리 경로입니다.
-- **선언적 데이터 원칙**: 이 스펙의 모든 임베드 페이로드는 **선언적 데이터**만 표현합니다. `<script>` 태그, 인라인 이벤트 핸들러, `javascript:` URI, 임의의 실행 가능 코드는 절대 포함될 수 없으며, 문자열 필드에서 발견 시 검증 오류로 거부됩니다(6장 참조). 실제로 임베드를 재생하는 코드는 카드 파일이 아니라 항상 플랫폼 앱(재생 엔진)에 고정 탑재된 신뢰 코드가 담당합니다 — "카드 = 데이터, 재생 코드 = 앱 소유" 원칙은 v1.x 애니메이션 카드와 동일하게 적용됩니다.
+- **선언적 데이터 원칙**: 이 스펙의 모든 임베드 페이로드는 **선언적 데이터**만 표현합니다. `<script>` 태그, 인라인 이벤트 핸들러, `javascript:` URI, 임의의 실행 가능 코드는 절대 포함될 수 없으며, 문자열 필드에서 발견 시 검증 오류로 거부됩니다(6장 참조). 실제로 임베드를 재생하는 코드는 카드 파일이 아니라 항상 플랫폼 앱(재생 엔진)에 고정 탑재된 신뢰 코드가 담당합니다 — "카드 = 데이터, 재생 코드 = 앱 소유" 원칙은 v1.3.0 이하 애니메이션 카드와 동일하게 적용됩니다.
 - `vivo:video`/`vivo:motion`/`vivo:lottie` 외의 `vivo:` 접두사 언어 식별자는 정의되지 않은 임베드 타입으로 검증 오류 처리됩니다.
 
 #### 4.3.3 `vivo:video` — 동영상 임베드
@@ -258,7 +258,7 @@ foreground: "#e2e8f0"
 
 #### 4.3.4 `vivo:motion` — 모션·인터랙션 임베드
 
-기존 v1.x 애니메이션 카드의 **단일 슬라이드 구조**(`canvas` + `elements[]` + `steps[]` + `interactions[]`)를 그대로 재사용합니다. 멀티 슬라이드는 지원하지 않습니다 — 여러 장면이 필요하면 임베드를 본문에 여러 개 배치하고, "슬라이드 넘기기"는 본문 스크롤이 대신합니다.
+기존 v1.3.0 이하 애니메이션 카드의 **단일 슬라이드 구조**(`canvas` + `elements[]` + `steps[]` + `interactions[]`)를 그대로 재사용합니다. 멀티 슬라이드는 지원하지 않습니다 — 여러 장면이 필요하면 임베드를 본문에 여러 개 배치하고, "슬라이드 넘기기"는 본문 스크롤이 대신합니다.
 
 페이로드는 인라인 JSON 또는 외부 파일 참조 중 하나입니다.
 
@@ -404,7 +404,7 @@ foreground: "#e2e8f0"
   "force_checkpoint": false,
   "version": "1.0.0",
   "changelog": "최초 릴리즈",
-  "bundler_protocol_version": "2.0.0",
+  "bundler_protocol_version": "1.4.0",
   "target_age": "10+",
   "category": "Programming",
   "language": "ko",
@@ -453,18 +453,18 @@ theme: light
    - ZIP 파일 압축 시, 최상위 경로에 단일 폴더가 있고 그 안에 `package-manifest.json`이 들어있는 이중 레이어 구조는 금지됩니다. ZIP 파일을 열었을 때 바로 `package-manifest.json`, `config.json`, `wiki.md`, `cards/`가 최상위 루트에 존재해야 합니다.
 2. **TOC-Card 1:1 매칭 및 파일 정합성**:
    - `config.json`의 `cards` 배열 내 모든 파일명은 실제 ZIP 안의 `cards/` 폴더 내에 정확히 존재해야 하며, 대소문자까지 일치해야 합니다.
-   - `bundler_protocol_version`의 major가 `2` 이상이면 `cards/` 아래 파일은 `.md`/`.mdx` 확장자만 허용되며, `.json` 카드 파일이 하나라도 존재하면 검증이 거부됩니다. major가 `1`인 레거시 번들은 부록 A 규칙(마크다운 `.md`/`.mdx` 및 동영상·애니메이션 카드 `.json` 확장자 허용)이 그대로 적용됩니다.
+   - `bundler_protocol_version`이 `1.4.0` 이상이면 `cards/` 아래 파일은 `.md`/`.mdx` 확장자만 허용되며, `.json` 카드 파일이 하나라도 존재하면 검증이 거부됩니다. `1.3.0` 이하인 레거시 번들은 부록 A 규칙(마크다운 `.md`/`.mdx` 및 동영상·애니메이션 카드 `.json` 확장자 허용)이 그대로 적용됩니다.
    - `toc` 트리에서 `filename`이 명시된 노드는 반드시 `cards` 배열에 있는 파일명 중 하나여야 하며, `cards` 배열에 나열된 모든 파일이 `toc` 트리 어딘가에 한 번씩만 매핑되어야 합니다.
 3. **무성의한 기본 텍스트 방치 금지**:
    - `toc` 노드의 `title`이 파일명과 완전히 동일(예: title이 `01_intro`인 경우)하면 안 됩니다. 사용자가 읽기 좋은 언어(예: `1강. 오리엔테이션 및 입문 가이드`)로 설정되어야 합니다.
    - `toc` 노드의 `description`이 `"강좌 상세 카드를 확인하세요."` 와 같은 기본값으로 설정되어 있다면 검증이 반려됩니다. 각 노드에 알맞은 요약 정보가 구체적으로 기술되어야 합니다.
-4. **강좌 카드 Frontmatter 검증 (v2.0.0 신설)**:
+4. **강좌 카드 Frontmatter 검증 (v1.4.0 신설)**:
    - 카드 파일 최상단에 frontmatter 블록(`---`로 시작·종료)이 있는 경우, flat key-value 파싱이 성공해야 합니다. 파싱 실패 시 검증 오류입니다.
    - `theme` 필드가 지정된 경우 `"light"` 또는 `"dark"` 중 하나가 아니면 거부됩니다.
    - `background`/`foreground` 필드가 지정된 경우 `^#[0-9a-fA-F]{6}$` 형식(6자리 hex 색상)이 아니면 거부됩니다.
    - 정의되지 않은 frontmatter 키는 오류가 아닌 경고로 처리됩니다.
    - `config.json`의 `card_style`(4.2.1절) 객체에도 동일한 스키마와 규칙이 적용됩니다.
-5. **임베드 블록(`vivo:video`/`vivo:motion`/`vivo:lottie`) 검증 (v2.0.0 신설)**:
+5. **임베드 블록(`vivo:video`/`vivo:motion`/`vivo:lottie`) 검증 (v1.4.0 신설)**:
    - 카드 본문에서 추출한 각 `vivo:*` 펜스 코드 블록의 내용은 유효한 JSON이어야 합니다. 파싱 실패 시 거부됩니다.
    - `vivo:video`/`vivo:motion`/`vivo:lottie` 외의 `vivo:` 접두사 언어 식별자는 정의되지 않은 임베드 타입으로 거부됩니다.
    - `vivo:video`: `provider`(현재 `"youtube"`만 허용)와 `video_id`(문자열) 필수. `subtitles` 지정 시 배열 타입이어야 하며 각 원소는 `start`/`end`(Number)와 `text`(String)를 가져야 합니다.
@@ -476,8 +476,8 @@ theme: light
    - `license` 필드를 생략하면 `"all-rights-reserved"`가 기본값으로 적용됩니다.
    - `license`가 `"custom"`인 경우 `license_file` 필드가 반드시 존재해야 하며, 그 값이 가리키는 파일이 ZIP 루트에 실제로 포함되어 있어야 합니다. 누락 시 업로드가 거부됩니다.
    - `license`가 `"custom"`이 아닌 경우 `license_file`은 필수는 아니지만, 4.1.2절의 제3자 리소스 고지가 필요하면 선택적으로 지정할 수 있습니다. 지정한 경우 그 값이 가리키는 파일이 ZIP 루트에 실제로 포함되어 있어야 합니다.
-7. **레거시(v1.x) 카드 검증**:
-   - `bundler_protocol_version`의 major가 `1`인 번들에 한해, 부록 A에 기술된 동영상 카드(`type:"video"`)·애니메이션 카드(`type:"animation"`) 스키마 검증 규칙이 그대로 적용됩니다(kind/effect/trigger/event 허용 목록, id 참조 무결성, `images/` 실존 검사, 스크립트 삽입 금지 포함). major가 `2` 이상인 번들에는 `cards/*.json` 자체가 허용되지 않으므로(2번 항목) 이 규칙은 적용되지 않습니다.
+7. **레거시(v1.3.0 이하) 카드 검증**:
+   - `bundler_protocol_version`이 `1.3.0` 이하인 번들에 한해, 부록 A에 기술된 동영상 카드(`type:"video"`)·애니메이션 카드(`type:"animation"`) 스키마 검증 규칙이 그대로 적용됩니다(kind/effect/trigger/event 허용 목록, id 참조 무결성, `images/` 실존 검사, 스크립트 삽입 금지 포함). `1.4.0` 이상인 번들에는 `cards/*.json` 자체가 허용되지 않으므로(2번 항목) 이 규칙은 적용되지 않습니다.
 
 ---
 
@@ -511,9 +511,9 @@ theme: light
 
 ---
 
-## 부록 A. Legacy v1.x 카드 포맷 (읽기 전용, 신규 제작 금지)
+## 부록 A. Legacy v1.3.0 이하 카드 포맷 (읽기 전용, 신규 제작 금지)
 
-> 아래 스펙은 `bundler_protocol_version`의 major가 `1`인 기존 배포 번들의 재생 호환을 위해 보존됩니다. **신규 강좌 제작 시 이 절의 카드 타입을 사용하지 마십시오** — 4.3절의 단일 강좌 카드(`vivo:video`/`vivo:motion` 임베드)로 대체되었습니다.
+> 아래 스펙은 `bundler_protocol_version`이 `1.3.0` 이하인 기존 배포 번들의 재생 호환을 위해 보존됩니다. **신규 강좌 제작 시 이 절의 카드 타입을 사용하지 마십시오** — 4.3절의 단일 강좌 카드(`vivo:video`/`vivo:motion` 임베드)로 대체되었습니다.
 
 ### A.1 동영상 카드 JSON 스펙 (`cards/*.json`, `type: "video"`)
 

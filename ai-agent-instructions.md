@@ -13,8 +13,8 @@
 ## 2. 핵심 준수 지침 (Core Constraints)
 
 1. **프로토콜 버전 준수**:
-   - 모든 통합 강좌 패키지는 **Open Tutorials Course Bundler Protocol v2.0.0**을 준수해야 합니다.
-   - `package-manifest.json`에 `"bundler_protocol_version": "2.0.0"`을 필수적으로 포함해야 합니다.
+   - 모든 통합 강좌 패키지는 **Open Tutorials Course Bundler Protocol v1.4.0**을 준수해야 합니다.
+   - `package-manifest.json`에 `"bundler_protocol_version": "1.4.0"`을 필수적으로 포함해야 합니다.
 2. **필수 메타데이터 자동 추출 및 설정**:
    - 강좌 원고를 분석하여 알맞은 대상 연령대(`target_age`)와 카테고리(`category`)를 추론하고 명시해야 합니다.
    - 정보가 불충분할 경우 임의로 가상값을 넣지 말고, 강좌 제작자(사용자)에게 인터뷰 질문을 통해 확정받아야 합니다.
@@ -24,7 +24,7 @@
 4. **엄격한 파일명 & 대소문자 매칭**:
    - 생성한 마크다운/동영상 카드 파일들의 목록(`cards/` 디렉토리 내부)과 `config.json`의 `cards` 배열, 그리고 `toc` 트리 하위 노드의 `filename` 매핑은 대소문자와 기호 하나까지 정확하게 일치해야 합니다.
 5. **단일 강좌 카드 원칙 (`cards/*.md`만 존재)**:
-   - `cards/` 아래에는 오직 마크다운(`.md`/`.mdx`) 파일만 생성하십시오. `.json` 카드 파일은 v2.0.0에서 금지되며 검증 오류로 거부됩니다(부록 A는 기배포 v1.x 강좌 재생 전용이지 신규 제작 대상이 아닙니다).
+   - `cards/` 아래에는 오직 마크다운(`.md`/`.mdx`) 파일만 생성하십시오. `.json` 카드 파일은 v1.4.0에서 금지되며 검증 오류로 거부됩니다(부록 A는 기배포 v1.3.0 이하 강좌 재생 전용이지 신규 제작 대상이 아닙니다).
    - 카드에 테마/배경/전경색을 지정하려면 파일 최상단에 frontmatter(`title`/`theme`/`background`/`foreground`, `protocol.md` 4.3.1절)를 선택적으로 작성하십시오. 강좌 전체 기본값이 필요하면 `config.json`의 `card_style`(4.2.1절)을 사용하십시오.
 6. **임베드 블록(`vivo:video`/`vivo:motion`/`vivo:lottie`) 사용 기준**:
    - 원고에 유튜브 영상 링크(또는 강좌 제작자가 지정한 영상)가 포함된 단원은 카드 본문에 ` ```vivo:video ` 펜스 블록을 삽입해 표현합니다. `protocol.md` 4.3.3절의 스키마(`provider: "youtube"`, `video_id`, 선택적 `start`/`duration_seconds`/`subtitles`)를 그대로 따라야 합니다. 자막(`subtitles`)을 생성할 때는 실제 영상 음성/자막 트랙에서 얻은 타임스탬프만 사용하고, 각 항목은 `start < end`를 만족하며 시간 순으로 정렬해야 합니다. 실제 발화 시점을 알 수 없다면 임의의 시간값을 지어내지 말고 제작자에게 원본 자막(SRT/VTT 등)이나 영상 스크립트를 요청하십시오.
@@ -99,7 +99,7 @@ AI Agent의 시스템 프롬프트에 다음 문구를 삽입하여 사용하십
 ```text
 귀하는 Open Tutorials 강좌 번들 자동 빌더 에이전트입니다.
 반드시 docs/bundler/protocol.md 가이드라인을 참조하여 검증을 통과하는 ZIP 구조를 빌드해야 합니다.
-특히, 신규 속성인 target_age, category, bundler_protocol_version "2.0.0" 을 package-manifest.json 에 삽입해야 하며,
+특히, 신규 속성인 target_age, category, bundler_protocol_version "1.4.0" 을 package-manifest.json 에 삽입해야 하며,
 정보 수집이 어려울 시 creator-interview-guide.md에 기반하여 사용자에게 추가 인터뷰를 진행하십시오.
 모든 단원은 cards/*.md 단일 강좌 카드로 작성하고, 필요할 때만 본문에 vivo:video / vivo:motion / vivo:lottie
 임베드 블록을 삽입하십시오. vivo:motion은 protocol.md 4.3.4절 스키마와 allowlist를 엄격히 준수하며,
