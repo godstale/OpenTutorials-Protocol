@@ -8,7 +8,7 @@
 
 ### Added
 - **3D 모델 뷰어/플레이어 임베드 `vivo:3d` 신설 (제4.3.7절)**:
-  - 강좌 카드 본문에 GLB 3D 모델을 삽입하여 회전/줌/팬(OrbitControls), 조명/배경 제어, 자동 회전, 전체화면 지원.
+  - 강좌 카드 본문에 GLB 3D 모델을 삽입하여 회전/줌/팬(OrbitControls), 조명/배경 제어, 자동 회전, 전체화면(`fullscreen: true` 또는 UI 토글) 지원.
   - GLB 내장 애니메이션 클립 재생 제어(`animation.clip`, `animation.autoplay`, `animation.loop`, `animation.speed`) 지원.
   - GLB 내부 노드의 회전/이동/스케일을 제어하는 선언적 변환 애니메이션 DSL(`transforms[]`) 지원 (최대 16개).
   - 디렉토리 구조에 `assets/models/` 폴더가 신설되었습니다 (제3장). `vivo:3d`가 참조하는 `.glb` 바이너리 모델 파일(최대 30MB)을 배치합니다.
@@ -19,9 +19,12 @@
   - 4종 WASM 런타임 지원: Python(Pyodide), Web 라이브 프리뷰(HTML/CSS/JS iframe), JavaScript/TypeScript(Web Worker + esbuild), SQL(sql.js SQLite).
   - 5종 로컬 네이티브 툴체인 런타임 지원: C, C++, Rust, Java, Go (앱 소유 툴체인 레지스트리 기반 안전 실행).
   - 에디터 행 잠금(`read_only_lines`), 콘솔 노출 제어(`show_console`), 타임아웃(`timeout_ms`), Python 패키지 의존성(`packages`) 지원.
+  - **뷰 모드(`view: "split" | "preview" | "editor"`) 및 전체화면(`fullscreen: true`) 옵션 지원**: Intro/시각화 카드 등에서 에디터 없이 결과 화면만 전면으로 채우는 뷰 연출 지원.
+- **전체 임베드 컴포넌트(`vivo:video`, `vivo:motion`, `vivo:lottie`, `vivo:3d`, `vivo:runtime`)에 `fullscreen` 옵션 및 전체화면 토글 지원**:
+  - `fullscreen: true` 설정 시 진입 시점부터 뷰포트/탭 전체를 채우는 몰입형 레이아웃 렌더링 지원.
 - **제6조 검증 규칙에 `vivo:3d` 및 `vivo:runtime` 검증 항목 추가 (5번 항목)**:
   - `vivo:3d`: `src` 경로(`assets/models/`), `.glb` 확장자, 파일 실존, GLB 매직 바이트(`glTF` + version 2), 30MB 크기 제한, 카메라/조명/변환 속성 allowlist 및 보안 스캔.
-  - `vivo:runtime`: 구분선(`^---(?:[ \t]+(\S.*?))?[ \t]*$`) 파싱, 헤더 JSON 검증, `lang` × `mode` 허용 조합표 검증, 실행 명령 금지 키 차단, 파일명 형식(`^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`) 및 경로 탈출 방지, 네이티브 모드 자동 실행 금지, Python WASM 패키지 허용 목록 검증.
+  - `vivo:runtime`: 구분선(`^---(?:[ \t]+(\S.*?))?[ \t]*$`) 파싱, 헤더 JSON 검증, `lang` × `mode` 허용 조합표 검증, `view` allowlist 검증, 실행 명령 금지 키 차단, 파일명 형식(`^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`) 및 경로 탈출 방지, 네이티브 모드 자동 실행 금지, Python WASM 패키지 허용 목록 검증.
 
 ### Non-Breaking / Compatibility
 - 기존 v1.4.0 강좌 번들과 완벽히 하위 호환됩니다. v1.4.0 재생 엔진은 미지의 `vivo:3d`/`vivo:runtime` 임베드를 안전하게 무시하거나 폴백 렌더링합니다.

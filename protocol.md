@@ -259,6 +259,7 @@ foreground: "#e2e8f0"
 | `start` | Number | Optional | 재생 시작 위치(초 단위). 기본값 `0` |
 | `duration_seconds` | Number | Optional | 동영상 전체 길이(초) |
 | `subtitles` | Array | Optional | 시간별 자막 정보 배열. 각 원소는 `start`(Number), `end`(Number), `text`(String) |
+| `fullscreen` | Boolean | Optional | 전체화면 모드로 표시 여부. 기본값 `false` |
 
 #### 4.3.4 `vivo:motion` — 모션·인터랙션 임베드
 
@@ -308,12 +309,13 @@ foreground: "#e2e8f0"
 **최상위 구조**
 
 | 필드명 | 타입 | 필수 여부 | 설명 |
-| :--- | :--- | :---: | :--- |
+| :--- | :--- | :--- | :--- |
 | `src` | String | Conditional | 외부 참조 방식일 때 **Mandatory**. `assets/motion/` 아래 실제 존재하는 JSON 파일 상대경로. 지정 시 아래 다른 필드는 무시되고 참조 파일의 내용이 페이로드로 취급됩니다 |
 | `canvas` | Object | Conditional | 인라인 방식일 때 **Mandatory**. `width`(Number), `height`(Number), `background`(String, CSS 색상값) |
 | `elements` | Array | Conditional | 인라인 방식일 때 **Mandatory**. 도형/이미지/텍스트 요소 목록 |
 | `steps` | Array | Optional | 진입 시 순서대로 재생되는 애니메이션 시퀀스(reveal.js의 fragment 리빌 패턴). 기본값: 빈 배열 |
 | `interactions` | Array | Optional | `steps` 진행 여부와 무관하게 특정 요소 클릭 시 즉시 반응하는 독립 이벤트 바인딩. 기본값: 빈 배열 |
+| `fullscreen` | Boolean | Optional | 전체화면 모드로 표시 여부. 기본값 `false` |
 
 임베드는 본문 폭 100%를 차지하는 반응형 박스로 렌더링되며, 높이는 `canvas`의 가로세로 비율로 결정됩니다.
 
@@ -373,6 +375,7 @@ foreground: "#e2e8f0"
 | `loop` | Boolean | Optional | 반복 재생 여부. 기본값 `true` |
 | `autoplay` | Boolean | Optional | 화면 진입 시 자동 재생 여부. 기본값 `true` |
 | `speed` | Number | Optional | 재생 속도 배율. 기본값 `1` |
+| `fullscreen` | Boolean | Optional | 전체화면 모드로 표시 여부. 기본값 `false` |
 
 > **보안 제약**: 참조된 Lottie JSON 파일은 **expressions(임의 JavaScript 표현식)를 포함해서는 안 됩니다.** 재생 엔진은 expressions를 지원하지 않는 빌드(`lottie-web/build/player/lottie_light` 등)로만 재생하며, 검증기는 expressions가 포함된 Lottie 파일을 거부합니다(6장 참조).
 
@@ -432,6 +435,7 @@ foreground: "#e2e8f0"
 | `animation.clip` | String | Optional | 첫 번째 클립 | 재생할 GLB 내장 클립 이름. 존재하지 않으면 재생 엔진이 첫 클립으로 폴백하고 안내 배지를 표시 |
 | `animation.speed` | Number | Optional | `1` | 재생 속도 배율. `0.1`~`4` |
 | `transforms` | Array | Optional | `[]` | 선언적 변환 애니메이션(4.3.7.3절). 최대 **16개** |
+| `fullscreen` | Boolean | Optional | `false` | 진입 시 전체화면 모드 여부 |
 
 ##### 4.3.7.3 `transforms[]` — 선언적 변환 애니메이션
 
@@ -504,10 +508,12 @@ console.log("loaded");
 | :--- | :--- | :---: | :--- | :--- |
 | `lang` | String | **Mandatory** | — | 4.3.8.4절 표의 값 중 하나 |
 | `mode` | String | **Mandatory** | — | `"wasm"` / `"web"` / `"native"`. `lang`과의 조합은 4.3.8.4절 표로 제한 |
+| `view` | String | Optional | `"split"` | `"split"` (에디터+결과), `"preview"` (에디터 숨기고 실행 결과만 노출), `"editor"` (에디터만 노출) |
+| `fullscreen` | Boolean | Optional | `false` | `true` 설정 시 전체화면으로 임베드 실행 |
 | `title` | String | Optional | `""` | 실습 블록 헤더에 표시할 제목 |
 | `entry` | String | Optional | 언어별 기본값(4.3.8.4절) | 엔트리 파일명 |
 | `read_only_lines` | Number[] | Optional | `[]` | **엔트리 파일 기준** 1-base 행 번호. 해당 줄은 편집 불가로 잠깁니다 |
-| `height` | Number | Optional | `380` | 에디터 영역 높이(px). `160`~`1200` |
+| `height` | Number | Optional | `380` | 에디터/프리뷰 영역 높이(px). `160`~`1200` |
 | `autorun` | Boolean | Optional | `lang === "web"`이면 `true`, 그 외 `false` | 화면 진입 시 자동 실행. **`mode: "native"`에서는 `true` 지정 자체가 검증 오류** |
 | `show_console` | Boolean | Optional | `true` | Console 탭 노출 여부 |
 | `timeout_ms` | Number | Optional | `10000` | 실행 타임아웃(ms). `1000`~`60000` |
