@@ -1,6 +1,6 @@
 # Open Tutorials Course Bundler Protocol Specification
 
-**Version:** 1.4.0
+**Version:** 1.5.0
 **Status:** Active
 **Scope:** Open Tutorials Course Packaging & local execution
 
@@ -12,7 +12,9 @@
 
 이 프로토콜은 온디바이스 로컬 실행 환경(`db.json` 및 `public/courses`)과의 완벽한 호환을 보장하며, AI Agent 기반의 자동 강좌 제작 프로젝트에서 참조하여 강좌 파일을 무결성 있게 제작하기 위한 공식 가이드라인입니다.
 
-> **v1.4.0 변경 요지 (Breaking Change):** v1.3.0 이하까지 존재했던 마크다운(`.md`)/동영상(`.json`, `type:"video"`)/애니메이션·인터랙션(`.json`, `type:"animation"`) 3종 카드 구분을 폐지하고, 모든 학습 카드를 **단일 "강좌 카드"**(`cards/*.md` + YAML frontmatter + 임베드 블록)로 통합합니다. 동영상·모션(애니메이션)·Lottie는 더 이상 독립된 카드 파일이 아니라, 마크다운 본문 흐름 중 원하는 위치에 삽입하는 **임베드 컴포넌트**입니다. 자세한 사항은 4장을, v1.3.0 이하 레거시 스키마는 부록 A를 참조하십시오.
+> **v1.5.0 변경 요지:** 3D 모델 뷰어/플레이어 임베드(`vivo:3d`, GLB 모델 및 변환 애니메이션)와 코드 실습/실행 환경 임베드(`vivo:runtime`, WASM 4종 및 로컬 네이티브 툴체인)를 신규 임베드 타입으로 추가했습니다. 기존 v1.4.0 번들과 완벽히 하위 호환됩니다.
+>
+> **v1.4.0 변경 요지 (통합 강좌 카드):** v1.3.0 이하까지 존재했던 마크다운(`.md`)/동영상(`.json`, `type:"video"`)/애니메이션·인터랙션(`.json`, `type:"animation"`) 3종 카드 구분을 폐지하고, 모든 학습 카드를 **단일 "강좌 카드"**(`cards/*.md` + YAML frontmatter + 임베드 블록)로 통합했습니다. 동영상·모션(애니메이션)·Lottie는 더 이상 독립된 카드 파일이 아니라, 마크다운 본문 흐름 중 원하는 위치에 삽입하는 **임베드 컴포넌트**입니다. 자세한 사항은 4장을, v1.3.0 이하 레거시 스키마는 부록 A를 참조하십시오.
 
 ---
 
@@ -22,14 +24,14 @@ Open Tutorials 플랫폼에서 강좌 번들이 처리되고 데이터베이스�
 
 1. **메타데이터 및 콘텐츠 기획**:
    - 강좌 카테고리, 대상 연령대, 학습 순서 제어 방식 등을 결정합니다.
-   - 메인 지식베이스가 될 `wiki.md`와 개별 학습 카드(`cards/*.md`)를 설계합니다. 각 카드는 마크다운 본문이며, 필요한 경우 동영상(`vivo:video`)·모션 인터랙션(`vivo:motion`)·Lottie 애니메이션(`vivo:lottie`) 임베드를 본문 중간에 삽입할 수 있습니다.
+   - 메인 지식베이스가 될 `wiki.md`와 개별 학습 카드(`cards/*.md`)를 설계합니다. 각 카드는 마크다운 본문이며, 필요한 경우 동영상(`vivo:video`)·모션 인터랙션(`vivo:motion`)·Lottie 애니메이션(`vivo:lottie`)·3D 모델(`vivo:3d`)·코드 실습 런타임(`vivo:runtime`) 임베드를 본문 중간에 삽입할 수 있습니다.
 2. **패키지 매니페스트(`package-manifest.json`) 작성**:
    - 필수 프로토콜 항목(`bundler_protocol_version`, `target_age`, `category`)을 설정하고 제목 및 기본 정보를 정의합니다. (더 이상 개별 하위 강좌 리스트 `courses`는 지정하지 않습니다.)
 3. **패키지 구성 및 config.json 작성**:
    - 루트 경로에 `config.json`, `wiki.md`, `cards/` 디렉토리를 생성합니다.
    - `config.json` 내부에 학습 카드 파일 목록과 목차(TOC) 트리 구조, 그리고 선택적으로 강좌 전체 기본 카드 스타일(`card_style`)을 정의합니다.
 4. **단일 강좌 패키지 ZIP 압축**:
-   - 루트에 `package-manifest.json`, `config.json`, `wiki.md`, `thumbnail.png`(선택), `cards/`, `images/`(선택), `assets/`(선택, `motion`/`lottie` 임베드가 외부 파일을 참조하는 경우)를 두고 최종 하나의 ZIP 파일로 압축합니다.
+   - 루트에 `package-manifest.json`, `config.json`, `wiki.md`, `thumbnail.png`(선택), `cards/`, `images/`(선택), `assets/`(선택, `motion`/`lottie`/`models` 임베드가 외부 파일을 참조하는 경우)를 두고 최종 하나의 ZIP 파일로 압축합니다.
 5. **대시보드 업로드 및 정합성 검증**:
    - 사용자가 플랫폼 내 업로드 UI를 통해 ZIP 파일을 등록하면 브라우저단에서 JSZip을 이용하여 필수 파일 구성, JSON 문법 포맷, TOC와 파일명의 1:1 매칭 등을 사전 검증합니다.
 6. **로컬 데이터베이스 반영**:
@@ -49,18 +51,20 @@ Open Tutorials 플랫폼에서 강좌 번들이 처리되고 데이터베이스�
 ├── thumbnail.png                   # 대표 썸네일 이미지 (선택, package-manifest.json에 매핑 가능)
 ├── LICENSE.md                      # 라이선스 전문 및/또는 제3자 리소스 고지 (선택, license가 "custom"일 때 필수)
 ├── cards/                          # 강의 카드 디렉토리 (필수, .md/.mdx 파일만 허용 — .json 카드는 v1.4.0부터 금지)
-│   ├── 01_intro.md                 # 강좌 카드 (frontmatter + 본문, 동영상/모션/Lottie 임베드 포함 가능)
+│   ├── 01_intro.md                 # 강좌 카드 (frontmatter + 본문, 동영상/모션/Lottie/3D/런타임 임베드 포함 가능)
 │   └── 02_concept.md
 ├── images/                         # 강좌 카드 및 vivo:motion 임베드(image 요소)에서 참조하는 비트맵/SVG 이미지 폴더 (선택)
 │   └── schema.png
-└── assets/                         # vivo:motion·vivo:lottie 임베드가 외부 파일로 참조하는 리소스 폴더 (선택)
+└── assets/                         # vivo:motion·vivo:lottie·vivo:3d 임베드가 외부 파일로 참조하는 리소스 폴더 (선택)
     ├── motion/                     # vivo:motion 임베드가 { "src": "assets/motion/xxx.json" }로 참조하는 Scene DSL JSON
     │   └── 01_variables.json
-    └── lottie/                     # vivo:lottie 임베드가 { "src": "assets/lottie/xxx.json" }로 참조하는 Lottie 애니메이션 JSON
-        └── intro.json
+    ├── lottie/                     # vivo:lottie 임베드가 { "src": "assets/lottie/xxx.json" }로 참조하는 Lottie 애니메이션 JSON
+    │   └── intro.json
+    └── models/                     # vivo:3d 임베드가 { "src": "assets/models/xxx.glb" }로 참조하는 GLB 3D 모델
+        └── robot_arm.glb
 ```
 
-> **레거시(v1.3.0 이하) 구조:** `bundler_protocol_version`이 `1.3.0` 이하인 번들은 `cards/` 아래 `.json`(`type:"video"`/`type:"animation"`) 카드를 계속 포함할 수 있습니다. 부록 A를 참조하십시오. 이 폴더 구조는 v1.4.0(신규 제작)에만 적용됩니다.
+> **레거시(v1.3.0 이하) 구조:** `bundler_protocol_version`이 `1.3.0` 이하인 번들은 `cards/` 아래 `.json`(`type:"video"`/`type:"animation"`) 카드를 계속 포함할 수 있습니다. 부록 A를 참조하십시오. 이 폴더 구조는 v1.4.0 이상(신규 제작)에 적용됩니다.
 
 ---
 
@@ -80,7 +84,7 @@ Open Tutorials 플랫폼에서 강좌 번들이 처리되고 데이터베이스�
 | `force_checkpoint` | Boolean | Optional | 특정 체크포인트를 지나야만 다음 단계 활성화 (기본값: `false`) | `false` |
 | `version` | String | Optional | 강좌 패키지 자체의 배포 버전 (기본값: `"1.0.0"`) | `"1.2.0"` |
 | `changelog` | String | Optional | 버전별 주요 변경 사항 (기본값: `"최초 릴리즈"`) | `"TOC 구조 최적화 및 3장 실습 추가"` |
-| `bundler_protocol_version` | String | **Mandatory** | 이 번들이 준수한 번들러 프로토콜 명세 버전. 버전이 `1.4.0` 이상이면 4장의 단일 강좌 카드 스키마가, `1.3.0` 이하이면 부록 A의 레거시 스키마가 적용됩니다 | `"1.4.0"` |
+| `bundler_protocol_version` | String | **Mandatory** | 이 번들이 준수한 번들러 프로토콜 명세 버전. 버전이 `1.4.0` 이상이면 4장의 단일 강좌 카드 스키마가, `1.3.0` 이하이면 부록 A의 레거시 스키마가 적용됩니다 | `"1.5.0"` |
 | `target_age` | String | **Mandatory** | 강좌 수강에 권장되는 대상 연령대 (`all` (전연령), `x+` (x세 이상), `min-max` (연령대 범위)) | `"all"`, `"10+"`, `"8-13"` |
 | `category` | String | **Mandatory** | 강좌의 대분류 카테고리 | `"Programming"`, `"Design"`, `"Marketing"`, `"Math"` |
 | `language` | String | Optional | 강좌 패키지의 주 언어 (기본값: `"ko"`) | `"ko"`, `"en"` |
@@ -217,7 +221,7 @@ foreground: "#e2e8f0"
 
 #### 4.3.2 임베드 블록 공통 규칙
 
-카드 본문 중 동영상·모션 인터랙션·Lottie 애니메이션을 삽입하려면, 마크다운 펜스 코드 블록(백틱 3개)의 언어 식별자로 `vivo:video`/`vivo:motion`/`vivo:lottie`를 지정하고 그 안에 JSON 페이로드를 작성합니다.
+카드 본문 중 동영상·모션 인터랙션·Lottie 애니메이션·3D 모델·코드 실습 런타임을 삽입하려면, 마크다운 펜스 코드 블록(백틱 3개)의 언어 식별자로 `vivo:video`/`vivo:motion`/`vivo:lottie`/`vivo:3d`/`vivo:runtime`을 지정하고 그 안에 페이로드를 작성합니다.
 
 ```markdown
 계속해서 자료형을 살펴봅시다...
@@ -230,8 +234,8 @@ foreground: "#e2e8f0"
 ```
 
 - 이 문법을 모르는 일반 마크다운 뷰어(GitHub 등)에서는 그냥 코드 블록으로 표시되어 본문이 깨지지 않습니다. Open Tutorials 재생 앱(및 Vivo Studio 미리보기)만 `vivo:*` 언어 식별자를 감지해 실제 임베드 컴포넌트로 치환합니다. 7.3절(코드 블록 가이드라인)의 일반 구문 강조 코드 블록과는 별개의 처리 경로입니다.
-- **선언적 데이터 원칙**: 이 스펙의 모든 임베드 페이로드는 **선언적 데이터**만 표현합니다. `<script>` 태그, 인라인 이벤트 핸들러, `javascript:` URI, 임의의 실행 가능 코드는 절대 포함될 수 없으며, 문자열 필드에서 발견 시 검증 오류로 거부됩니다(6장 참조). 실제로 임베드를 재생하는 코드는 카드 파일이 아니라 항상 플랫폼 앱(재생 엔진)에 고정 탑재된 신뢰 코드가 담당합니다 — "카드 = 데이터, 재생 코드 = 앱 소유" 원칙은 v1.3.0 이하 애니메이션 카드와 동일하게 적용됩니다.
-- `vivo:video`/`vivo:motion`/`vivo:lottie` 외의 `vivo:` 접두사 언어 식별자는 정의되지 않은 임베드 타입으로 검증 오류 처리됩니다.
+- **선언적 데이터 원칙**: 이 스펙의 모든 임베드 페이로드는 **선언적 데이터**만 표현합니다. `<script>` 태그, 인라인 이벤트 핸들러, `javascript:` URI, 임의의 실행 가능 코드는 절대 포함될 수 없으며, 문자열 필드에서 발견 시 검증 오류로 거부됩니다(6장 참조). 단, `vivo:runtime` 임베드의 코드 본문은 학습자가 화면에서 직접 편집·실행하기 위한 실습 대상 코드로 예외적으로 허용됩니다. 그러나 이 경우에도 컴파일러/인터프리터 실행 명령줄·경로(`command`, `args`, `cwd`, `env`, `interpreter` 등)를 카드가 지정하는 것은 엄격히 금지되며, 실제 실행 명령과 보안 샌드박스는 항상 플랫폼 앱(재생 엔진)의 툴체인 레지스트리가 소유합니다 — "카드 = 데이터, 실행 코드/환경 = 앱 소유" 원칙은 모든 임베드 타입에 일관되게 적용됩니다.
+- `vivo:video`/`vivo:motion`/`vivo:lottie`/`vivo:3d`/`vivo:runtime` 외의 `vivo:` 접두사 언어 식별자는 정의되지 않은 임베드 타입으로 검증 오류 처리됩니다.
 
 #### 4.3.3 `vivo:video` — 동영상 임베드
 
@@ -382,6 +386,170 @@ foreground: "#e2e8f0"
 
 재생 엔진은 이를 항상 `<img src>`로만 렌더링합니다(SVG를 마크다운 본문에 `dangerouslySetInnerHTML` 등으로 인라인 삽입하는 것은 금지). `<img>` 태그 안에서 재생되는 SVG는 SMIL/CSS 애니메이션이 동작하더라도 내부 `<script>`가 브라우저에 의해 차단되므로 안전합니다.
 
+#### 4.3.7 `vivo:3d` — 3D 모델 임베드 (v1.5.0 신설)
+
+강좌 카드 본문에 GLB 3D 모델을 삽입해 학습자가 회전·확대하며 살펴보고, 모델에 내장된 애니메이션 클립이나 선언적 변환 애니메이션을 재생할 수 있게 합니다.
+
+##### 4.3.7.1 페이로드 전체 예시
+
+```json
+{
+  "src": "assets/models/robot_arm.glb",
+  "alt": "6축 산업용 로봇 팔 3D 모델",
+  "height": 420,
+  "background": "transparent",
+  "auto_rotate": false,
+  "camera": { "position": [0, 1.5, 3], "target": [0, 0.8, 0], "fov": 45 },
+  "controls": { "enable_zoom": true, "enable_pan": true, "min_distance": 0.5, "max_distance": 20 },
+  "lighting": { "ambient_intensity": 0.9, "directional_intensity": 1.2 },
+  "animation": { "autoplay": true, "loop": true, "clip": "working_cycle", "speed": 1 },
+  "transforms": [
+    { "target": "Wheel_L", "property": "rotation.y", "from": 0, "to": 6.283, "duration": 4, "loop": true, "easing": "linear" }
+  ]
+}
+```
+
+##### 4.3.7.2 필드 명세
+
+| 필드 | 타입 | 필수 여부 | 기본값 | 설명 |
+| :--- | :--- | :---: | :--- | :--- |
+| `src` | String | **Mandatory** | — | `assets/models/` 아래 실제 존재하는 **`.glb`** 파일의 상대경로. `.gltf`(외부 `.bin`/텍스처 참조)는 v1.5.0에서 **미지원** |
+| `alt` | String | Optional | `""` | 대체 텍스트. 로딩 실패 시 화면에 표시되며 접근성 용도 |
+| `height` | Number | Optional | `400` | 뷰포트 높이(px). 허용 범위 `120`~`1200` |
+| `background` | String | Optional | `"transparent"` | `"transparent"` 또는 `#rrggbb` |
+| `auto_rotate` | Boolean | Optional | `false` | 진입 시 자동 회전 시작 여부 |
+| `camera.position` | Number[3] | Optional | 모델 바운딩 박스 기준 자동 산출 | 카메라 좌표 |
+| `camera.target` | Number[3] | Optional | 모델 중심 | 카메라가 바라보는 지점 |
+| `camera.fov` | Number | Optional | `45` | 시야각(도). `0 < fov < 180` |
+| `controls.enable_zoom` | Boolean | Optional | `true` | 휠 줌 허용 |
+| `controls.enable_pan` | Boolean | Optional | `true` | 우클릭 팬 허용 |
+| `controls.min_distance` | Number | Optional | 자동 | 최소 줌 거리(> 0) |
+| `controls.max_distance` | Number | Optional | 자동 | 최대 줌 거리(`min_distance`보다 커야 함) |
+| `lighting.ambient_intensity` | Number | Optional | `0.9` | 환경광 세기. `0`~`10` |
+| `lighting.directional_intensity` | Number | Optional | `1.2` | 직사광 세기. `0`~`10` |
+| `animation.autoplay` | Boolean | Optional | `true` | 화면 진입 시 자동 재생 |
+| `animation.loop` | Boolean | Optional | `true` | 반복 재생 |
+| `animation.clip` | String | Optional | 첫 번째 클립 | 재생할 GLB 내장 클립 이름. 존재하지 않으면 재생 엔진이 첫 클립으로 폴백하고 안내 배지를 표시 |
+| `animation.speed` | Number | Optional | `1` | 재생 속도 배율. `0.1`~`4` |
+| `transforms` | Array | Optional | `[]` | 선언적 변환 애니메이션(4.3.7.3절). 최대 **16개** |
+
+##### 4.3.7.3 `transforms[]` — 선언적 변환 애니메이션
+
+GLB에 애니메이션 클립이 없는 정적 모델에도 움직임을 줄 수 있는 최소 DSL입니다. `vivo:motion`의 `easing` 어휘를 그대로 재사용합니다.
+
+| 필드 | 타입 | 필수 여부 | 기본값 | 설명 |
+| :--- | :--- | :---: | :--- | :--- |
+| `target` | String | **Mandatory** | — | GLB 내부 노드 이름. 모델 전체는 `"__root__"` |
+| `property` | String | **Mandatory** | — | `rotation.x`/`rotation.y`/`rotation.z`/`position.x`/`position.y`/`position.z`/`scale.x`/`scale.y`/`scale.z`/`scale` 중 하나. `rotation.*`의 단위는 **라디안** |
+| `from` | Number | **Mandatory** | — | 시작값(유한수) |
+| `to` | Number | **Mandatory** | — | 종료값(유한수) |
+| `duration` | Number | **Mandatory** | — | 재생 시간(초). `0 < duration <= 600` |
+| `delay` | Number | Optional | `0` | 시작 지연(초). `>= 0` |
+| `loop` | Boolean \| String | Optional | `true` | `true`(반복) / `false`(1회) / `"pingpong"`(왕복) |
+| `easing` | String | Optional | `"linear"` | `linear`/`ease_in`/`ease_out`/`ease_in_out` |
+
+- `transforms`와 `animation.clip`은 **동시 사용 가능**합니다. 같은 노드의 같은 속성을 둘 다 건드리면 `transforms`가 나중에 적용됩니다(클립 적용 후 덮어쓰기).
+- 존재하지 않는 `target` 노드 이름은 검증기가 잡을 수 없습니다(GLB 파싱 필요). 재생 엔진이 무시하고 개발자 콘솔에 경고를 남깁니다.
+
+##### 4.3.7.4 3D 모델 제약 사항
+
+- 모델 파일 1개의 크기는 **30MB 이하**여야 합니다. 검증기가 번들 전체를 메모리에 올려 검사하기 때문입니다.
+- GLB 파일은 매직 바이트가 `glTF`(`0x67 0x6C 0x54 0x46`)이고 컨테이너 버전이 `2`여야 합니다.
+- Draco/Meshopt 압축 모델은 v1.5.0 재생 엔진이 디코더를 탑재하지 않으므로 **사용 금지**입니다(로딩 실패). 2차 확장 대상입니다.
+
+#### 4.3.8 `vivo:runtime` — 코드 IDE/런타임 임베드 (v1.5.0 신설)
+
+강좌 카드 본문에 편집·실행 가능한 코드 실습 블록을 삽입합니다.
+
+##### 4.3.8.1 펜스 본문 구조 및 파싱 규칙
+
+`vivo:runtime` 펜스 본문은 **순수 JSON이 아닙니다.** 아래 세 부분으로 구성됩니다.
+
+```text
+<JSON 헤더>
+--- 또는 --- <파일명>       ← 구분선
+<코드 본문>
+```
+
+정확한 파싱 규칙:
+
+1. 본문을 줄 단위로 훑으며 **`^---(?:[ \t]+(\S.*?))?[ \t]*$`** 정규식에 매치되는 줄을 **구분선**으로 봅니다.
+2. 첫 구분선 **앞부분** = JSON 헤더. `serde_json` / `JSON.parse`로 파싱합니다.
+3. 첫 구분선 **뒤부터 다음 구분선 전까지** = **엔트리 파일**. 파일명은 헤더의 `entry`, 없으면 언어별 기본값(4.3.8.4절).
+   - 첫 구분선에 파일명이 붙어 있으면 그것이 엔트리 파일명이 되고, `entry`와 다르면 검증 오류입니다.
+4. 두 번째 이후 구분선은 **반드시 파일명을 동반**해야 합니다. 파일명이 없으면 검증 오류입니다.
+5. 구분선이 하나도 없으면 검증 오류입니다(코드가 없는 실습 블록은 무의미).
+
+> **설계 배경:** 코드를 JSON 문자열에 넣으면 `\n`·`\"` 이스케이프가 과도해져 가독성이 저하되고 AI 에이전트의 작성 실패율이 급등합니다. 헤더만 JSON으로 두면 검증기는 여전히 `serde_json`을 쓸 수 있습니다.
+
+##### 4.3.8.2 다중 파일 예시
+
+````markdown
+```vivo:runtime
+{ "lang": "web", "mode": "web", "title": "플렉스박스 정렬 실습", "entry": "index.html" }
+---
+<!doctype html>
+<div class="row"><span>A</span><span>B</span></div>
+<script src="app.js"></script>
+--- style.css
+.row { display: flex; gap: 8px; }
+--- app.js
+console.log("loaded");
+```
+````
+
+##### 4.3.8.3 헤더 필드 명세
+
+| 필드 | 타입 | 필수 여부 | 기본값 | 설명 |
+| :--- | :--- | :---: | :--- | :--- |
+| `lang` | String | **Mandatory** | — | 4.3.8.4절 표의 값 중 하나 |
+| `mode` | String | **Mandatory** | — | `"wasm"` / `"web"` / `"native"`. `lang`과의 조합은 4.3.8.4절 표로 제한 |
+| `title` | String | Optional | `""` | 실습 블록 헤더에 표시할 제목 |
+| `entry` | String | Optional | 언어별 기본값(4.3.8.4절) | 엔트리 파일명 |
+| `read_only_lines` | Number[] | Optional | `[]` | **엔트리 파일 기준** 1-base 행 번호. 해당 줄은 편집 불가로 잠깁니다 |
+| `height` | Number | Optional | `380` | 에디터 영역 높이(px). `160`~`1200` |
+| `autorun` | Boolean | Optional | `lang === "web"`이면 `true`, 그 외 `false` | 화면 진입 시 자동 실행. **`mode: "native"`에서는 `true` 지정 자체가 검증 오류** |
+| `show_console` | Boolean | Optional | `true` | Console 탭 노출 여부 |
+| `timeout_ms` | Number | Optional | `10000` | 실행 타임아웃(ms). `1000`~`60000` |
+| `packages` | String[] | Optional | `[]` | `lang: "python"`, `mode: "wasm"` 전용. 4.3.8.5절 허용 목록만 사용 가능 |
+
+**헤더에 넣을 수 없는 것(검증 오류):** `command`, `args`, `compile_args`, `run_args`, `cwd`, `env`, `interpreter`, `path`, `shell`, `exec` 등 실행 명령/경로를 지정하는 모든 키. 명령은 앱이 소유합니다.
+
+##### 4.3.8.4 `lang` × `mode` 허용 조합
+
+| `lang` | 허용 `mode` | 기본 `entry` | 실행 수단 |
+| :--- | :--- | :--- | :--- |
+| `python` | `wasm`, `native` | `main.py` | Pyodide / 로컬 `python` |
+| `javascript` | `wasm`, `native` | `main.js` | Web Worker / 로컬 `node` |
+| `typescript` | `wasm` | `main.ts` | esbuild-wasm 트랜스파일 → Web Worker |
+| `sql` | `wasm` | `main.sql` | sql.js (인메모리 SQLite) |
+| `web` | `web` | `index.html` | 샌드박스 iframe |
+| `c` | `native` | `main.c` | 로컬 C 컴파일러 |
+| `cpp` | `native` | `main.cpp` | 로컬 C++ 컴파일러 |
+| `rust` | `native` | `main.rs` | 로컬 `rustc` |
+| `java` | `native` | `Main.java` | 로컬 `javac` + `java` |
+| `go` | `native` | `main.go` | 로컬 `go run` |
+
+표에 없는 조합(예: `lang: "c"` + `mode: "wasm"`)은 검증 오류입니다. **셸 스크립트(`bash`/`powershell`)는 의도적으로 제외**합니다 — 임의 시스템 명령 실행과 구분이 불가능하기 때문입니다.
+
+##### 4.3.8.5 `packages` 허용 목록 (Python WASM 전용)
+
+앱에 함께 번들되는 휠만 사용할 수 있습니다. 목록 밖의 값은 검증 오류입니다.
+
+```text
+numpy, matplotlib
+(참고: pandas, sympy, scipy는 스펙상 예약이며 환경에 미포함 시 안내 표시)
+```
+
+##### 4.3.8.6 파일명 규칙
+
+모든 파일명(엔트리 포함)은 아래를 만족해야 합니다. 네이티브 모드에서 임시 디렉터리에 실제 파일로 기록되므로 경로 탈출 방지가 목적입니다.
+
+- 정규식 `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`
+- `/`, `\`, `..` 포함 금지
+- 한 임베드 안에서 중복 금지
+- 파일 개수 최대 **10개**, 파일 하나당 최대 **64KB**
+
 ---
 
 ## 5. 제작 예시 (Implementation Example)
@@ -404,7 +572,7 @@ foreground: "#e2e8f0"
   "force_checkpoint": false,
   "version": "1.0.0",
   "changelog": "최초 릴리즈",
-  "bundler_protocol_version": "1.4.0",
+  "bundler_protocol_version": "1.5.0",
   "target_age": "10+",
   "category": "Programming",
   "language": "ko",
@@ -464,13 +632,34 @@ theme: light
    - `background`/`foreground` 필드가 지정된 경우 `^#[0-9a-fA-F]{6}$` 형식(6자리 hex 색상)이 아니면 거부됩니다.
    - 정의되지 않은 frontmatter 키는 오류가 아닌 경고로 처리됩니다.
    - `config.json`의 `card_style`(4.2.1절) 객체에도 동일한 스키마와 규칙이 적용됩니다.
-5. **임베드 블록(`vivo:video`/`vivo:motion`/`vivo:lottie`) 검증 (v1.4.0 신설)**:
-   - 카드 본문에서 추출한 각 `vivo:*` 펜스 코드 블록의 내용은 유효한 JSON이어야 합니다. 파싱 실패 시 거부됩니다.
-   - `vivo:video`/`vivo:motion`/`vivo:lottie` 외의 `vivo:` 접두사 언어 식별자는 정의되지 않은 임베드 타입으로 거부됩니다.
+5. **임베드 블록(`vivo:video`/`vivo:motion`/`vivo:lottie`/`vivo:3d`/`vivo:runtime`) 검증**:
+   - `vivo:video`/`vivo:motion`/`vivo:lottie`/`vivo:3d`/`vivo:runtime` 외의 `vivo:` 접두사 언어 식별자는 정의되지 않은 임베드 타입으로 거부됩니다.
+   - `vivo:video`/`vivo:motion`/`vivo:lottie`/`vivo:3d`: 펜스 블록 내용은 유효한 JSON이어야 하며, 파싱 실패 시 거부됩니다.
    - `vivo:video`: `provider`(현재 `"youtube"`만 허용)와 `video_id`(문자열) 필수. `subtitles` 지정 시 배열 타입이어야 하며 각 원소는 `start`/`end`(Number)와 `text`(String)를 가져야 합니다.
    - `vivo:motion`: `src` 참조 방식이면 `assets/motion/` 폴더 내에 해당 파일이 실제로 존재해야 합니다. 인라인/참조 페이로드 모두 4.3.4절 스키마(`canvas`/`elements` 필수, `elements[].kind` 허용 목록 준수, `steps[].actions[].target`/`interactions[].target`의 id 참조 무결성, `steps[].actions[].effect`/`interactions[].action.effect` 허용 목록 준수, `steps[].trigger`/`interactions[].event` 허용 목록 준수, kind별 Mandatory/Conditional 필드 누락 검사, `kind:"image"`의 `src`가 가리키는 파일이 `images/` 폴더 내에 실제 존재하는지 검사, 4.3.4.4절 텍스트 자동맞춤 필드 검증)를 만족해야 합니다.
    - `vivo:lottie`: 반드시 `src` 필드로 `assets/lottie/` 내 파일을 참조해야 하며, 인라인 Lottie 데이터 직접 삽입은 거부됩니다. `src`가 가리키는 파일이 실제로 존재하지 않으면 거부됩니다. 참조된 Lottie JSON 내부에 expressions(문자열 타입 값을 갖는 `"x"` 프로퍼티)가 발견되면 거부됩니다.
-   - **보안 검증(카드=데이터 원칙)**: frontmatter 값, 그리고 각 임베드 JSON의 모든 문자열 필드(`content`, `style`의 모든 문자열 값, `src`, `d`, `points`, `subtitles[].text` 등)에 `<script`, `on\w+=`(인라인 이벤트 핸들러), `javascript:` 패턴이 포함되어서는 안 되며, 발견 시 즉시 업로드가 거부됩니다.
+   - `vivo:3d` (v1.5.0 신설):
+     - `src` 필드가 필수이며 비어 있지 않아야 하고, 반드시 `assets/models/` 경로 아래의 `.glb` 파일이어야 합니다(`.gltf`는 거부).
+     - `src`가 가리키는 파일이 번들에 실제 존재해야 합니다.
+     - 해당 파일의 첫 4바이트가 `glTF`(`0x67 0x6C 0x54 0x46`)이고 바이트 4~7의 LE u32가 `2`인 유효한 GLB(glTF 2.0 binary) 파일이어야 합니다.
+     - 파일 크기가 30MB 이하여야 합니다.
+     - `camera.position`/`camera.target`은 길이 3의 유한수 배열이어야 하고, `camera.fov`는 `0 < fov < 180`이어야 합니다.
+     - `background`는 `"transparent"` 또는 `#rrggbb`, `height`는 120~1200, `lighting.*`는 0~10, `animation.speed`는 0.1~4 범위 내여야 합니다.
+     - `transforms`는 배열이고 최대 16개여야 하며, 각 원소의 `target`(비어있지 않은 문자열), `property`(허용 목록), `from`/`to`(유한수), `duration`(0 < duration <= 600), `delay`(>= 0), `loop`(bool 또는 `"pingpong"`), `easing`(허용 목록) 규칙을 준수해야 합니다.
+   - `vivo:runtime` (v1.5.0 신설):
+     - 펜스 본문에 구분선(`^---(?:[ \t]+(\S.*?))?[ \t]*$`)이 최소 1개 이상 존재해야 합니다.
+     - 첫 구분선 이전의 헤더는 유효한 JSON이어야 합니다.
+     - `lang`은 허용 언어 목록(`python`, `javascript`, `typescript`, `sql`, `web`, `c`, `cpp`, `rust`, `java`, `go`)에 속해야 하며, `mode`는 `"wasm"`, `"web"`, `"native"` 중 하나이고 4.3.8.4절의 `(lang, mode)` 허용 조합표를 준수해야 합니다.
+     - 헤더에 실행 명령/경로를 지정하는 금지 키(`command`, `args`, `compile_args`, `run_args`, `cwd`, `env`, `interpreter`, `path`, `shell`, `exec`)가 포함되어 있어서는 안 됩니다.
+     - 모든 파일명(엔트리 포함)은 정규식 `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`를 만족해야 하며 경로 탈출 문자(`/`, `\`, `..`)가 없고 중복되지 않아야 합니다.
+     - 두 번째 이후의 구분선은 반드시 파일명을 동반해야 합니다.
+     - 헤더의 `entry`가 지정된 경우, 첫 구분선에 파일명이 명시되어 있다면 두 값이 일치해야 합니다.
+     - 파일 개수는 최대 10개, 파일당 크기는 64KB 이하여야 합니다.
+     - `read_only_lines`는 양의 정수 배열이어야 하며 각 행 번호는 엔트리 파일의 행 수 이하여야 합니다.
+     - `mode: "native"`일 때 `autorun: true` 지정은 거부됩니다.
+     - `packages` 필드는 `lang == "python" && mode == "wasm"` 조합에서만 허용되며, 허용 목록(`numpy`, `matplotlib`)에 속해야 합니다.
+     - `height`(160~1200), `timeout_ms`(1000~60000) 범위를 만족해야 합니다.
+   - **보안 검증(카드=데이터 원칙)**: frontmatter 값, `vivo:runtime`의 헤더 JSON 값, 그리고 `vivo:video`/`vivo:motion`/`vivo:lottie`/`vivo:3d`의 모든 문자열 필드에 `<script`, `on\w+=`(인라인 이벤트 핸들러), `javascript:` 패턴이 포함되어서는 안 되며, 발견 시 즉시 업로드가 거부됩니다. (단, `vivo:runtime`의 코드 본문은 실습 대상 코드이므로 문자열 스캔을 적용하지 않습니다.)
 6. **라이선스(`license`) 필드 검증**:
    - `license` 필드를 명시하는 경우, 4.1.1절에 정의된 사전 정의 값(`CC-BY-4.0`, `CC-BY-SA-4.0`, `CC-BY-NC-4.0`, `CC-BY-NC-SA-4.0`, `CC-BY-ND-4.0`, `CC-BY-NC-ND-4.0`, `CC0-1.0`, `all-rights-reserved`) 또는 `"custom"` 중 하나여야 합니다. 그 외 임의 문자열은 검증 오류로 처리됩니다.
    - `license` 필드를 생략하면 `"all-rights-reserved"`가 기본값으로 적용됩니다.
@@ -500,7 +689,7 @@ theme: light
    - 플랫폼 학습 화면은 이 마크다운 테이블을 반응형 테두리와 정돈된 패딩 스타일을 지닌 프리미엄 테이블 UI로 자동 파싱하여 렌더링합니다.
 3. **코드 블록 및 구문 강조 (Code Blocks & Syntax Highlighting)**:
    - 아두이노 스케치 소스 코드 및 프로그래밍 코드를 포함할 때는 반드시 코드 블록 기호(백틱 3개, ` ``` `)를 사용해야 합니다.
-   - 이때 반드시 코드 블록 바로 옆에 언어 식별자(예: `cpp`, `arduino`, `javascript`, `json` 등)를 명시하여 소스 코드가 가독성 있게 강조되도록 합니다. **단, `vivo:video`/`vivo:motion`/`vivo:lottie` 언어 식별자는 일반 구문 강조가 아니라 4.3.2절의 임베드 컴포넌트로 특별 처리됩니다.**
+   - 이때 반드시 코드 블록 바로 옆에 언어 식별자(예: `cpp`, `arduino`, `javascript`, `json` 등)를 명시하여 소스 코드가 가독성 있게 강조되도록 합니다. **단, `vivo:video`/`vivo:motion`/`vivo:lottie`/`vivo:3d`/`vivo:runtime` 언어 식별자는 일반 구문 강조가 아니라 4.3.2절의 임베드 컴포넌트로 특별 처리됩니다.**
    - 예시:
      ```arduino
      void setup() {

@@ -13,8 +13,8 @@
 ## 2. 핵심 준수 지침 (Core Constraints)
 
 1. **프로토콜 버전 준수**:
-   - 모든 통합 강좌 패키지는 **Open Tutorials Course Bundler Protocol v1.4.0**을 준수해야 합니다.
-   - `package-manifest.json`에 `"bundler_protocol_version": "1.4.0"`을 필수적으로 포함해야 합니다.
+   - 모든 통합 강좌 패키지는 **Open Tutorials Course Bundler Protocol v1.5.0**을 준수해야 합니다.
+   - `package-manifest.json`에 `"bundler_protocol_version": "1.5.0"`을 필수적으로 포함해야 합니다.
 2. **필수 메타데이터 자동 추출 및 설정**:
    - 강좌 원고를 분석하여 알맞은 대상 연령대(`target_age`)와 카테고리(`category`)를 추론하고 명시해야 합니다.
    - 정보가 불충분할 경우 임의로 가상값을 넣지 말고, 강좌 제작자(사용자)에게 인터뷰 질문을 통해 확정받아야 합니다.
@@ -24,16 +24,18 @@
 4. **엄격한 파일명 & 대소문자 매칭**:
    - 생성한 마크다운/동영상 카드 파일들의 목록(`cards/` 디렉토리 내부)과 `config.json`의 `cards` 배열, 그리고 `toc` 트리 하위 노드의 `filename` 매핑은 대소문자와 기호 하나까지 정확하게 일치해야 합니다.
 5. **단일 강좌 카드 원칙 (`cards/*.md`만 존재)**:
-   - `cards/` 아래에는 오직 마크다운(`.md`/`.mdx`) 파일만 생성하십시오. `.json` 카드 파일은 v1.4.0에서 금지되며 검증 오류로 거부됩니다(부록 A는 기배포 v1.3.0 이하 강좌 재생 전용이지 신규 제작 대상이 아닙니다).
+   - `cards/` 아래에는 오직 마크다운(`.md`/`.mdx`) 파일만 생성하십시오. `.json` 카드 파일은 v1.4.0부터 금지되며 검증 오류로 거부됩니다(부록 A는 기배포 v1.3.0 이하 강좌 재생 전용이지 신규 제작 대상이 아닙니다).
    - 카드에 테마/배경/전경색을 지정하려면 파일 최상단에 frontmatter(`title`/`theme`/`background`/`foreground`, `protocol.md` 4.3.1절)를 선택적으로 작성하십시오. 강좌 전체 기본값이 필요하면 `config.json`의 `card_style`(4.2.1절)을 사용하십시오.
-6. **임베드 블록(`vivo:video`/`vivo:motion`/`vivo:lottie`) 사용 기준**:
+6. **임베드 블록(`vivo:video`/`vivo:motion`/`vivo:lottie`/`vivo:3d`/`vivo:runtime`) 사용 기준**:
    - 원고에 유튜브 영상 링크(또는 강좌 제작자가 지정한 영상)가 포함된 단원은 카드 본문에 ` ```vivo:video ` 펜스 블록을 삽입해 표현합니다. `protocol.md` 4.3.3절의 스키마(`provider: "youtube"`, `video_id`, 선택적 `start`/`duration_seconds`/`subtitles`)를 그대로 따라야 합니다. 자막(`subtitles`)을 생성할 때는 실제 영상 음성/자막 트랙에서 얻은 타임스탬프만 사용하고, 각 항목은 `start < end`를 만족하며 시간 순으로 정렬해야 합니다. 실제 발화 시점을 알 수 없다면 임의의 시간값을 지어내지 말고 제작자에게 원본 자막(SRT/VTT 등)이나 영상 스크립트를 요청하십시오.
    - 원고(PPT/PDF/Word/이미지)의 특정 단원이 "불릿이 한 줄씩 나타남", "도형이 단계별로 조립되어 다이어그램이 완성됨", "클릭 시 특정 부분을 강조" 등 프레젠테이션형 시각 자료로 구성되어 있고, 그 표현이 텍스트 설명보다 명확히 이해를 돕는다고 판단될 때만 카드 본문에 ` ```vivo:motion ` 펜스 블록을 삽입하십시오. 내용 이해에 기여하지 않는데도 습관적으로 삽입하지 마십시오.
    - 강사가 제공한 Lottie 애니메이션 파일이 있는 경우에만 ` ```vivo:lottie ` 펜스로 `assets/lottie/`의 파일을 참조하십시오. **Lottie 파일을 AI가 임의로 새로 만들어내지 마십시오** — 강사가 제공하지 않았다면 `vivo:motion`(Scene DSL)이나 정적 이미지로 대체하십시오.
+   - **`vivo:3d` (3D 모델 임베드)**: **강사가 GLB 파일을 제공했거나 명시적으로 3D를 요청한 경우에만** 삽입하십시오. **에이전트가 3D 모델을 임의로 새로 만들어 넣는 것은 금지**됩니다(3D 모델 제작 능력이 없음). 페이로드는 `protocol.md` 4.3.7절 스키마를 준수하며, `src`는 `assets/models/` 경로의 `.glb` 파일이어야 합니다.
+   - **`vivo:runtime` (코드 실습 런타임)**: **프로그래밍 실습이 주제인 단원에서, 학습자가 직접 코드를 고쳐 실행해 보는 것이 학습에 실질적으로 유리할 때** 삽입하십시오. 단순 코드 예시는 기존 일반 코드 블록(백틱 3개 + 언어명)을 사용합니다. 페이로드는 `protocol.md` 4.3.8절의 `JSON 헤더 + --- + 코드 본문` 구조를 엄격히 준수하고, 허용 `lang` × `mode` 조합 및 파일명 규칙을 따라야 합니다. 헤더에 실행 명령(`command`, `args`, `cwd` 등)을 넣는 것은 금지됩니다.
    - `vivo:motion` 페이로드는 **반드시 `protocol.md` 4.3.4절의 스키마만 사용하십시오.** `elements[].kind`는 4.3.4.1절 허용 목록(`rect`/`circle`/`ellipse`/`line`/`path`/`polygon`/`text`/`image`/`group`) 밖의 값을 임의로 만들어내지 말고, `steps[].actions[].effect`/`interactions[].action.effect`도 4.3.4.2절 허용 목록(`fade_in`, `fade_out`, `move_to`, `scale_to`, `rotate_to`, `show`, `hide`, `highlight`, `draw_path`) 안에서만 선택하십시오. 목록에 없는 효과가 필요하다고 판단되면 임의로 새 값을 만들지 말고 제작자에게 알린 뒤 범위를 조정하십시오.
-   - **절대 `<script>`, 인라인 이벤트 핸들러(`onclick="..."` 등), `javascript:` URI, 임의 HTML/CSS를 frontmatter나 임베드 JSON 어디에도 삽입하지 마십시오.** "카드 = 데이터, 재생 코드 = 앱 소유" 원칙은 모든 임베드 타입에 동일하게 적용되며, 실행 가능한 코드가 하나라도 발견되면 검증 단계에서 즉시 거부됩니다.
+   - **절대 `<script>`, 인라인 이벤트 핸들러(`onclick="..."` 등), `javascript:` URI, 임의 HTML/CSS를 frontmatter나 임베드 JSON/헤더 어디에도 삽입하지 마십시오.** "카드 = 데이터, 실행 코드/환경 = 앱 소유" 원칙은 모든 임베드 타입에 일관되게 적용되며, 실행 가능한 코드가 발견되면 검증 단계에서 즉시 거부됩니다.
    - `vivo:motion`의 `elements[].id`와 `steps[].actions[].target`/`interactions[].target`의 참조 관계가 정확히 일치하는지(존재하지 않는 id를 가리키지 않는지) 반드시 자가 검증하십시오.
-   - `vivo:motion`의 `kind: "image"` 요소가 가리키는 `src`는 ZIP의 `images/` 폴더에, `vivo:motion`/`vivo:lottie`의 `src`(외부 참조)가 가리키는 파일은 각각 `assets/motion/`/`assets/lottie/` 폴더에 실제로 포함시켜야 합니다(동영상 임베드의 `video_id`처럼 존재를 지어내지 마십시오).
+   - `vivo:motion`의 `kind: "image"` 요소가 가리키는 `src`는 ZIP의 `images/` 폴더에, `vivo:motion`/`vivo:lottie`/`vivo:3d`의 `src`(외부 참조)가 가리키는 파일은 각각 `assets/motion/`/`assets/lottie/`/`assets/models/` 폴더에 실제로 포함시켜야 합니다.
 
 ---
 
@@ -61,14 +63,16 @@ graph TD
 
 #### 2단계: 목차 및 파일 트리 설계
 - 원고를 `chapter` > `section` > `subsection` 구조로 분할합니다.
-- 각 단원을 20분 내외로 학습할 수 있는 분량으로 쪼개어 강의 카드 단위로 맵핑합니다. 모든 단원은 동일하게 `cards/*.md` 강좌 카드 하나로 만들되, 원고 단원에 대응하는 유튜브 영상이 있으면 `vivo:video` 임베드를, 슬라이드형 시각 자료(불릿 순차 노출, 다이어그램 단계별 조립, 클릭 강조 등)로 표현하는 것이 더 명확하면 `vivo:motion` 임베드를 본문 중 적절한 위치에 삽입할지 판단합니다. 임베드가 필요 없는 단원은 순수 마크다운만으로 작성합니다.
+- 각 단원을 20분 내외로 학습할 수 있는 분량으로 쪼개어 강의 카드 단위로 맵핑합니다. 모든 단원은 동일하게 `cards/*.md` 강좌 카드 하나로 만들되, 원고 단원에 대응하는 유튜브 영상이 있으면 `vivo:video` 임베드를, 슬라이드형 시각 자료로 표현하는 것이 더 명확하면 `vivo:motion` 임베드를, 강사가 3D 모델을 제공했으면 `vivo:3d` 임베드를, 코드 편집·실행 실습이 필요한 단원이면 `vivo:runtime` 임베드를 본문 중 적절한 위치에 삽입할지 판단합니다. 임베드가 필요 없는 단원은 순수 마크다운만으로 작성합니다.
 
 #### 3단계: 지식베이스(`wiki.md`) 및 학습 카드 작성
 - `wiki.md`는 AI 튜터가 학습자의 질문에 답변할 때 사용하는 종합 지식베이스입니다. 강좌의 핵심 이론과 개념 설명이 집약되어 있어야 합니다.
 - 강좌 카드는 상호작용 가능한 학습 콘텐츠로 작성합니다. 마크다운 헤더/테이블/코드 블록을 적극 활용하고, 필요한 경우에만 임베드 블록을 삽입하십시오.
 - `vivo:video` 임베드는 `protocol.md` 4.3.3절 스키마에 맞춰 `provider`, `video_id`, 선택적 `start`/`duration_seconds`/`subtitles`를 작성합니다. `subtitles`는 실제 영상 타임라인 기준으로만 채우고, 정보가 없으면 필드 자체를 생략하십시오.
-- `vivo:motion` 임베드는 `protocol.md` 4.3.4절 스키마에 맞춰 `canvas`, `elements[]`(+ 선택적 `steps[]`/`interactions[]`)를 작성하거나, `.template/`의 테마·레이아웃·SVG 리소스·쇼케이스 자산에서 시작해 `assets/motion/`에 파일로 저장한 뒤 `{ "src": "assets/motion/xxx.json" }`로 참조합니다. `kind`/`effect`/`trigger`/`event` 값은 반드시 허용 목록 안에서만 선택하고, 실행 가능한 코드는 절대 삽입하지 않습니다(2장 6번 항목 참조).
+- `vivo:motion` 임베드는 `protocol.md` 4.3.4절 스키마에 맞춰 `canvas`, `elements[]`(+ 선택적 `steps[]`/`interactions[]`)를 작성하거나, `.template/`의 자산에서 시작해 `assets/motion/`에 파일로 저장한 뒤 `{ "src": "assets/motion/xxx.json" }`로 참조합니다. `kind`/`effect`/`trigger`/`event` 값은 반드시 허용 목록 안에서만 선택하고, 실행 가능한 코드는 절대 삽입하지 않습니다(2장 6번 항목 참조).
 - `vivo:lottie` 임베드는 강사가 제공한 Lottie 파일을 `assets/lottie/`에 그대로 저장하고 `{ "src": "assets/lottie/xxx.json" }`로 참조하는 형태로만 사용하며, 인라인 데이터나 AI가 새로 만든 Lottie 파일은 사용하지 않습니다.
+- `vivo:3d` 임베드는 강사가 제공한 GLB 모델을 `assets/models/`에 저장하고 `protocol.md` 4.3.7절 스키마에 따라 `{ "src": "assets/models/xxx.glb", ... }`를 작성합니다.
+- `vivo:runtime` 임베드는 `protocol.md` 4.3.8절에 따라 헤더 JSON + 구분선(`---`) + 코드 본문(다중 파일 시 `--- <파일명>` 섹션 구분)을 작성합니다. `lang`과 `mode` 조합은 4.3.8.4절 허용 표를 준수해야 합니다.
 - `vivo:motion`의 `kind: "text"` 요소의 `width`/`height`를 텍스트 길이에 맞춰 픽셀 단위로 정확히 역산하려 하지 마십시오. 재생 엔진이 4.3.4.4절의 자동맞춤(줄바꿈·폰트 축소·수직 정렬) 규칙을 적용하므로, 박스 크기는 넉넉하게 잡고 `content`만 정확히 작성하면 됩니다. 의도적으로 한 줄 고정 렌더링이 필요한 경우에만 `style.wrap: false`를 명시하십시오.
 - SVG를 포함한 정적 이미지는 항상 마크다운 이미지 문법(`![alt](images/foo.svg)`)으로만 참조하십시오(4.3.6절). SVG를 본문에 직접 인라인 삽입하지 마십시오.
 
@@ -85,9 +89,12 @@ graph TD
   - `vivo:motion`의 모든 `elements[].kind`, `steps[].actions[].effect`, `steps[].trigger`, `interactions[].event`가 4.3.4절 허용 목록 안의 값인가?
   - `vivo:motion`의 `steps[].actions[].target`/`interactions[].target`이 같은 임베드의 `elements[].id` 중 하나를 정확히 가리키는가?
   - `vivo:motion`의 `kind: "image"` 요소가 가리키는 `src` 파일이 `images/` 폴더에 실제로 포함되어 있는가?
-  - `vivo:motion`/`vivo:lottie`가 `src`로 참조하는 파일이 각각 `assets/motion/`/`assets/lottie/`에 실제로 포함되어 있는가?
+  - `vivo:motion`/`vivo:lottie`/`vivo:3d`가 `src`로 참조하는 파일이 각각 `assets/motion/`/`assets/lottie/`/`assets/models/`에 실제로 포함되어 있는가?
+  - `vivo:3d`의 `src` 파일이 유효한 GLB 파일(매직 바이트 `glTF`, 버전 2, 30MB 이하)인가?
+  - `vivo:runtime` 펜스에 구분선(`^---(?:[ \t]+(\S.*?))?[ \t]*$`)이 존재하고 헤더 JSON이 파싱되는가?
+  - `vivo:runtime`의 `(lang, mode)` 조합이 허용 표에 있고, 금지 키(`command`, `args` 등)가 없으며, 파일명들이 규칙을 만족하는가?
   - `vivo:lottie`가 참조하는 Lottie JSON에 expressions(임의 JS)가 포함되어 있지 않은가?
-  - frontmatter 값과 임베드 JSON의 문자열 필드 어디에도 `<script`, 인라인 이벤트 핸들러, `javascript:` 같은 실행 가능 코드 패턴이 없는가?
+  - frontmatter 값과 임베드 JSON/헤더의 문자열 필드 어디에도 `<script`, 인라인 이벤트 핸들러, `javascript:` 같은 실행 가능 코드 패턴이 없는가?
   - `vivo:motion`의 `kind: "text"` 요소에서 `style.overflow: "visible"`을 남용해 텍스트가 박스 밖으로 넘치도록 방치하지 않았는가? (기본값 `"shrink"`를 그대로 두는 것을 권장)
 
 ---
@@ -99,10 +106,11 @@ AI Agent의 시스템 프롬프트에 다음 문구를 삽입하여 사용하십
 ```text
 귀하는 Open Tutorials 강좌 번들 자동 빌더 에이전트입니다.
 반드시 docs/bundler/protocol.md 가이드라인을 참조하여 검증을 통과하는 ZIP 구조를 빌드해야 합니다.
-특히, 신규 속성인 target_age, category, bundler_protocol_version "1.4.0" 을 package-manifest.json 에 삽입해야 하며,
+특히, 신규 속성인 target_age, category, bundler_protocol_version "1.5.0" 을 package-manifest.json 에 삽입해야 하며,
 정보 수집이 어려울 시 creator-interview-guide.md에 기반하여 사용자에게 추가 인터뷰를 진행하십시오.
-모든 단원은 cards/*.md 단일 강좌 카드로 작성하고, 필요할 때만 본문에 vivo:video / vivo:motion / vivo:lottie
-임베드 블록을 삽입하십시오. vivo:motion은 protocol.md 4.3.4절 스키마와 allowlist를 엄격히 준수하며,
-frontmatter나 어떤 임베드 JSON에도 실행 가능 코드(<script>, 인라인 이벤트 핸들러, javascript: URI)를
+모든 단원은 cards/*.md 단일 강좌 카드로 작성하고, 필요할 때만 본문에 vivo:video / vivo:motion / vivo:lottie / vivo:3d / vivo:runtime
+임베드 블록을 삽입하십시오. vivo:motion/vivo:3d/vivo:runtime은 protocol.md 스키마와 allowlist를 엄격히 준수하며,
+frontmatter나 어떤 임베드 JSON/헤더에도 실행 가능 코드(<script>, 인라인 이벤트 핸들러, javascript: URI)를
 삽입하지 마십시오.
 ```
+
