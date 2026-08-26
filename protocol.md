@@ -1,6 +1,6 @@
 # Open Tutorials Course Bundler Protocol Specification
 
-**Version:** 1.5.0
+**Version:** 1.6.0
 **Status:** Active
 **Scope:** Open Tutorials Course Packaging & local execution
 
@@ -12,6 +12,8 @@
 
 이 프로토콜은 온디바이스 로컬 실행 환경(`db.json` 및 `public/courses`)과의 완벽한 호환을 보장하며, AI Agent 기반의 자동 강좌 제작 프로젝트에서 참조하여 강좌 파일을 무결성 있게 제작하기 위한 공식 가이드라인입니다.
 
+> **v1.6.0 변경 요지:** 하나의 강좌가 여러 언어 버전(한국어 기본 + 선택적 영어/베트남어/인도네시아어)을 갖고 Vivo Academy에서 언어를 전환하며 볼 수 있도록 다국어 지원(Multilingual Course Support)을 추가했습니다. 언어별 콘텐츠는 `locales/<lang>/` 오버레이 폴더에 "달라지는 파일만" 배치하는 방식이며, 기존 v1.5.0 이하 단일언어 번들과 완벽히 하위 호환됩니다.
+>
 > **v1.5.0 변경 요지:** 3D 모델 뷰어/플레이어 임베드(`vivo:3d`, GLB 모델 및 변환 애니메이션)와 코드 실습/실행 환경 임베드(`vivo:runtime`, WASM 4종 및 로컬 네이티브 툴체인)를 신규 임베드 타입으로 추가했습니다. 기존 v1.4.0 번들과 완벽히 하위 호환됩니다.
 >
 > **v1.4.0 변경 요지 (통합 강좌 카드):** v1.3.0 이하까지 존재했던 마크다운(`.md`)/동영상(`.json`, `type:"video"`)/애니메이션·인터랙션(`.json`, `type:"animation"`) 3종 카드 구분을 폐지하고, 모든 학습 카드를 **단일 "강좌 카드"**(`cards/*.md` + YAML frontmatter + 임베드 블록)로 통합했습니다. 동영상·모션(애니메이션)·Lottie는 더 이상 독립된 카드 파일이 아니라, 마크다운 본문 흐름 중 원하는 위치에 삽입하는 **임베드 컴포넌트**입니다. 자세한 사항은 4장을, v1.3.0 이하 레거시 스키마는 부록 A를 참조하십시오.
@@ -55,16 +57,32 @@ Open Tutorials 플랫폼에서 강좌 번들이 처리되고 데이터베이스�
 │   └── 02_concept.md
 ├── images/                         # 강좌 카드 및 vivo:motion 임베드(image 요소)에서 참조하는 비트맵/SVG 이미지 폴더 (선택)
 │   └── schema.png
-└── assets/                         # vivo:motion·vivo:lottie·vivo:3d 임베드가 외부 파일로 참조하는 리소스 폴더 (선택)
-    ├── motion/                     # vivo:motion 임베드가 { "src": "assets/motion/xxx.json" }로 참조하는 Scene DSL JSON
-    │   └── 01_variables.json
-    ├── lottie/                     # vivo:lottie 임베드가 { "src": "assets/lottie/xxx.json" }로 참조하는 Lottie 애니메이션 JSON
-    │   └── intro.json
-    └── models/                     # vivo:3d 임베드가 { "src": "assets/models/xxx.glb" }로 참조하는 GLB 3D 모델
-        └── robot_arm.glb
+├── assets/                         # vivo:motion·vivo:lottie·vivo:3d 임베드가 외부 파일로 참조하는 리소스 폴더 (선택)
+│   ├── motion/                     # vivo:motion 임베드가 { "src": "assets/motion/xxx.json" }로 참조하는 Scene DSL JSON
+│   │   └── 01_variables.json
+│   ├── lottie/                     # vivo:lottie 임베드가 { "src": "assets/lottie/xxx.json" }로 참조하는 Lottie 애니메이션 JSON
+│   │   └── intro.json
+│   └── models/                     # vivo:3d 임베드가 { "src": "assets/models/xxx.glb" }로 참조하는 GLB 3D 모델
+│       └── robot_arm.glb
+└── locales/                        # ★ 신설 (선택, v1.6.0) — 언어별 오버레이 폴더
+    ├── en/
+    │   ├── translation-status.json # ★ 신설 (필수, locales/<lang>/ 존재 시) — 번역 상태 메타데이터
+    │   ├── wiki.md                 # 선택: 있으면 en 위키로 사용, 없으면 루트 wiki.md 폴백
+    │   ├── config.json             # 선택: 있으면 en TOC(제목/설명 번역판)로 사용, 없으면 루트 config.json 폴백
+    │   ├── cards/                  # 선택 오버라이드 (번역이 끝난 카드만 존재하면 됨)
+    │   │   ├── 01_intro.md
+    │   │   └── 02_concept.md
+    │   ├── images/
+    │   │   └── schema.png          # 선택: 다이어그램에 원어(한국어) 라벨이 박혀있는 경우에만 교체
+    │   └── assets/
+    │       └── motion/01_variables.json  # 선택: 텍스트가 포함된 모션 소스만 교체
+    ├── vi/                         # ... (동일 구조, 전부 선택)
+    └── id/                         # ... (동일 구조, 전부 선택)
 ```
 
 > **레거시(v1.3.0 이하) 구조:** `bundler_protocol_version`이 `1.3.0` 이하인 번들은 `cards/` 아래 `.json`(`type:"video"`/`type:"animation"`) 카드를 계속 포함할 수 있습니다. 부록 A를 참조하십시오. 이 폴더 구조는 v1.4.0 이상(신규 제작)에 적용됩니다.
+>
+> **다국어(v1.6.0) 오버레이 구조:** `locales/` 폴더는 선택 항목이며, `bundler_protocol_version`이 `1.6.0` 미만이거나 `locales/`가 없는 번들은 기존과 동일한 단일 언어 강좌로 취급됩니다. 자세한 스키마는 4.4절을 참조하십시오.
 
 ---
 
@@ -87,7 +105,9 @@ Open Tutorials 플랫폼에서 강좌 번들이 처리되고 데이터베이스�
 | `bundler_protocol_version` | String | **Mandatory** | 이 번들이 준수한 번들러 프로토콜 명세 버전. 버전이 `1.4.0` 이상이면 4장의 단일 강좌 카드 스키마가, `1.3.0` 이하이면 부록 A의 레거시 스키마가 적용됩니다 | `"1.5.0"` |
 | `target_age` | String | **Mandatory** | 강좌 수강에 권장되는 대상 연령대 (`all` (전연령), `x+` (x세 이상), `min-max` (연령대 범위)) | `"all"`, `"10+"`, `"8-13"` |
 | `category` | String | **Mandatory** | 강좌의 대분류 카테고리 | `"Programming"`, `"Design"`, `"Marketing"`, `"Math"` |
-| `language` | String | Optional | 강좌 패키지의 주 언어 (기본값: `"ko"`) | `"ko"`, `"en"` |
+| `language` | String | Optional | 강좌 패키지의 주 언어 (기본값: `"ko"`). (v1.6.0부터 `base_language`로 대체되었으나 하위 호환을 위해 계속 지원되는 별칭입니다. 신규 제작 시 `base_language` 사용을 권장합니다.) | `"ko"`, `"en"` |
+| `base_language` | String | Optional | 강좌의 기본(원본) 언어 (기본값: `"ko"`). 기존 `language` 필드를 대체하며, 둘 다 지정 시 동일 값이어야 함(다르면 검증 경고) | `"ko"` |
+| `supported_languages` | Array of String | Optional | 이 강좌가 제공하는 언어 코드 목록 (기본값: `[base_language]`). `"ko"`/`"en"`/`"vi"`/`"id"` 중에서 선택하며 `base_language`를 반드시 포함해야 함 | `["ko", "en", "vi"]` |
 | `tags` | Array of String | Optional | 강좌의 성격을 나타내는 태그 목록 | `["아두이노", "IoT", "하드웨어"]` |
 | `license` | String | Optional | 강좌 콘텐츠에 적용되는 라이선스. 4.1.1절의 사전 정의 값 중 하나를 사용하거나, 직접 작성한 라이선스는 `"custom"`으로 지정 (기본값: `"all-rights-reserved"`) | `"CC-BY-4.0"`, `"all-rights-reserved"`, `"custom"` |
 | `license_file` | String | Conditional | `license`가 `"custom"`일 때 **Mandatory**. 그 외의 경우에도 4.1.2절의 제3자 리소스 고지가 필요하면 선택적으로 사용 가능. ZIP 루트에 포함된 라이선스/고지 파일명 | `"LICENSE.md"` |
@@ -564,6 +584,179 @@ numpy, matplotlib
 
 ---
 
+### 4.4 다국어 강좌 지원 (Multilingual Course Support, v1.6.0 신설)
+
+하나의 강좌 패키지가 여러 언어 버전을 갖고, Vivo Academy에서 **같은 강좌 안에서 언어를 전환**하여 볼 수 있도록 하는 다국어 지원 구조입니다. 가격/공개 여부 등 강좌 메타데이터는 언어와 무관하게 강좌 단위로 공유됩니다. 지원 언어는 기본 `ko`, 선택적으로 `en`/`vi`/`id`입니다. 선택된 언어의 콘텐츠는 AI 자동 번역 초안으로 생성되고 강사가 Vivo Studio에서 검수/수정하며, 언어별 번역 상태(`draft`/`reviewed`/`published` 등)를 추적할 수 있습니다.
+
+#### 4.4.1 설계 원칙
+
+기존 프로토콜이 이미 채택한 두 가지 원칙을 다국어 지원에도 그대로 확장 적용합니다.
+
+- **오버레이(Overlay) 방식**: 새 언어를 위해 강좌 전체를 복제하지 않습니다. 기본 언어(base language) 콘텐츠가 이미 루트에 존재하므로, 각 언어는 "달라지는 파일만" 추가로 두는 **오버레이 폴더**로 표현합니다. 오버레이 폴더에 파일이 없으면 항상 루트(base) 파일로 **폴백**합니다.
+- **선언적 데이터 우선**: 카드 본문(`cards/*.md`, `wiki.md`) 안의 `vivo:video`/`vivo:motion` 등 임베드 JSON은 카드 파일의 일부이므로, 카드 파일 하나를 번역하면 그 안의 자막(`subtitles[].text`)이나 다이어그램 텍스트(`elements[].content`)도 함께 번역됩니다. 별도의 "임베드 텍스트 전용 번역 포맷"을 새로 만들 필요가 없습니다.
+
+이 두 원칙 덕분에 하위 호환은 자동으로 따라옵니다: 오버레이 폴더(`locales/`)가 없는 기존 ZIP은 오늘과 완전히 동일하게 동작합니다(4.4.7절).
+
+#### 4.4.2 오버레이 디렉토리 구조 (`locales/`)
+
+```text
+[강좌 패키지 ZIP 파일]
+├── package-manifest.json           # 강좌 단위 공유 메타데이터 (가격/공개여부/카테고리 등) — 언어 무관
+├── config.json                     # 기본 언어(base language) TOC + 카드 목록
+├── wiki.md                         # 기본 언어 위키
+├── thumbnail.png
+├── LICENSE.md
+├── cards/                          # 기본 언어 카드 (기존과 100% 동일)
+│   ├── 01_intro.md
+│   └── 02_concept.md
+├── images/                         # 공통 기본 이미지
+│   └── schema.png
+├── assets/                         # 공통 기본 motion/lottie/models
+│   └── motion/01_variables.json
+└── locales/                        # ★ 신설 (선택) — 언어별 오버레이
+    ├── en/
+    │   ├── translation-status.json # ★ 신설 (필수, locales/<lang>/ 존재 시) — 번역 상태 메타데이터
+    │   ├── wiki.md                 # 선택: 있으면 en 위키로 사용, 없으면 루트 wiki.md 폴백
+    │   ├── config.json             # 선택: 있으면 en TOC(제목/설명 번역판)로 사용, 없으면 루트 config.json 폴백
+    │   ├── cards/
+    │   │   ├── 01_intro.md         # 선택 오버라이드 (번역이 끝난 카드만 존재하면 됨)
+    │   │   └── 02_concept.md
+    │   ├── images/
+    │   │   └── schema.png          # 선택: 다이어그램에 한국어 라벨이 박혀있는 경우에만 교체
+    │   └── assets/
+    │       └── motion/01_variables.json  # 선택: 텍스트가 포함된 모션 소스만 교체
+    ├── vi/
+    │   └── ... (동일 구조, 전부 선택)
+    └── id/
+        └── ... (동일 구조, 전부 선택)
+```
+
+- `locales/` 폴더는 **완전히 선택 항목**입니다. 없으면 3장의 기존 구조가 그대로 적용됩니다.
+- `cards/`, `images/`, `assets/`의 기존 하위 규칙(허용 확장자, `assets/motion|lottie|models` 서브폴더 규칙 등)은 `locales/<lang>/` 하위에서도 동일하게 적용됩니다 — 구조를 그대로 복제하되 파일 존재 여부만 선택적입니다.
+
+#### 4.4.3 경로 해석(Resolution) 규칙 — 모든 언어별 자원에 공통 적용
+
+강좌를 언어 `L`로 렌더링할 때, 임의의 상대 경로 `p` (예: `wiki.md`, `config.json`, `cards/01_intro.md`, `images/schema.png`, `assets/motion/01_variables.json`)를 조회하는 절차:
+
+1. `L`이 base language(기본값 `ko`)이면 → 항상 루트의 `p`를 사용.
+2. `L`이 base language가 아니면 →
+   a. `locales/<L>/<p>` 파일이 ZIP/저장소 내에 실존하면 그것을 사용.
+   b. 존재하지 않으면 루트의 `p`로 **폴백**.
+
+이 규칙 하나로 "텍스트 오버라이드"와 "에셋 오버라이드"를 동일하게 설명할 수 있습니다.
+
+#### 4.4.4 언어별 텍스트 콘텐츠 오버라이드
+
+| 대상 | 오버라이드 단위 | 방식 |
+| :--- | :--- | :--- |
+| 위키 본문 | 파일 전체 | `locales/<lang>/wiki.md` 존재 시 전체 교체 |
+| 카드 본문(및 그 안의 임베드 JSON 텍스트) | 파일 전체 | `locales/<lang>/cards/<파일명>.md` 존재 시 전체 교체. `vivo:video`의 `subtitles[].text`, `vivo:motion`의 `elements[].content` 등 카드 안에 인라인된 텍스트는 카드 파일을 번역하는 것만으로 함께 번역됨 (별도 스키마 불필요) |
+| 목차(TOC) 제목/설명 | 파일 전체 | `locales/<lang>/config.json` 존재 시 TOC의 `title`/`description` 등 텍스트가 번역된 버전으로 전체 교체 |
+| 강좌 패키지 자체의 `title`/`description`/`tags`/`changelog` (package-manifest.json) | 개별 필드 | 4.4.6.4절 참조 — course-level 메타데이터는 언어 무관 공유가 원칙이나, 표시용 제목/설명만 예외적으로 언어별 오버라이드 허용 (`locales/<lang>/manifest-overrides.json`, 4.4.6.4절) |
+
+##### 4.4.4.1 `config.json` 번역판 검증 규칙
+
+TOC 구조 자체(트리 모양, `filename` 매핑)는 언어에 따라 달라지면 안 되므로(같은 강좌를 다른 언어로 보는 것이지 다른 강좌가 아님), `locales/<lang>/config.json`은 다음을 만족해야 합니다.
+
+- `cards` 배열의 파일명 집합이 루트 `config.json`의 `cards` 배열과 **동일**해야 함 (번역 파일이 있든 없든, 참조하는 base 카드 파일명 기준).
+- `toc` 트리의 노드 개수·순서·`type`·`filename`이 루트 `config.json`과 **완전히 동일**해야 함. 오직 `title`/`description`(및 노드별 번역 상태 참조용 필드)만 달라질 수 있음.
+- `card_style`은 언어별로 달라질 이유가 없으므로, 언어별 `config.json`에 지정되어 있어도 **무시**하고 항상 루트 값을 사용 (일관성 유지, 혼란 방지).
+
+이 규칙은 "번역자가 실수로 구조를 바꿔서 두 언어 버전이 다른 강좌처럼 어긋나는" 사고를 검증 단계에서 차단하기 위함입니다.
+
+#### 4.4.5 언어별 에셋(이미지/다이어그램) 오버라이드
+
+**공유 vs 교체 판단 규칙:** 기본 원칙은 **"에셋은 기본적으로 공유하고, 언어 의존적 콘텐츠가 박혀 있을 때만 교체"**입니다. 검증기가 자동으로 강제할 수는 없는 저작 가이드라인이므로, Vivo Studio UI/가이드 문서 수준에서 아래 판단 기준을 안내합니다.
+
+| 상황 | 권장 |
+| :--- | :--- |
+| 이미지/GLB 모델이 순수 시각 자료이며 텍스트 라벨이 없음 (사진, 아이콘, 범용 3D 모델 등) | **공유** — 언어별 오버라이드 금지(또는 불필요). `locales/<lang>/` 아래 동일 경로 파일을 만들지 않음 |
+| 이미지/다이어그램 안에 한국어(또는 원어) 텍스트 라벨이 렌더링되어 있음 (`images/schema.png` 안에 "입력값" 같은 한글 라벨) | **교체** — 해당 언어 라벨로 다시 그린 이미지를 `locales/<lang>/images/schema.png`로 배치 |
+| `vivo:motion` 외부 참조 JSON(`assets/motion/*.json`)의 `elements[].content`(텍스트 요소)에 언어 의존 텍스트가 있음 | **교체** — `locales/<lang>/assets/motion/<동일 파일명>.json`으로 텍스트만 번역된 버전을 배치. `canvas`/도형 좌표 등 비텍스트 요소는 동일하게 유지 권장 |
+| `vivo:lottie`(`assets/lottie/*.json`) 안에 텍스트 레이어가 있음 | **교체** — 동일 방식으로 `locales/<lang>/assets/lottie/<동일 파일명>.json` |
+| `vivo:3d`(`assets/models/*.glb`) | 원칙적으로 **공유** (3D 모델에 텍스트 라벨이 각인된 특수 케이스가 아니면 언어별 교체 불필요). 30MB 제한이 있는 큰 바이너리이므로 불필요한 언어별 중복 배치는 지양 |
+
+**메커니즘:** 이미지/에셋 오버라이드는 4.4.3절의 "경로 해석 규칙"을 그대로 재사용합니다. 즉 새로운 스키마가 필요 없고, `locales/<lang>/images/<파일명>`, `locales/<lang>/assets/<motion|lottie|models>/<파일명>`에 **동일 상대경로**로 파일을 두기만 하면 검증기/재생 엔진이 자동으로 우선 사용합니다.
+
+**검증 규칙:**
+- `locales/<lang>/images/`, `locales/<lang>/assets/**`에 존재하는 모든 파일은, 그 파일명이 카드(base 또는 해당 언어 오버라이드 카드) 어딘가에서 참조되는 상대경로와 **일치**해야 함 (고아 파일 금지 — 기존 6장의 "미사용 리소스 정합성" 원칙 확장).
+- `vivo:3d`(GLB), `vivo:runtime` 파일 실습 코드는 언어별 오버라이드 대상에서 **제외**를 권장(가이드라인 수준). GLB는 위 표 참조. `vivo:runtime` 코드 실습은 학습자가 직접 코드를 읽고 편집하는 대상이라 코드 자체(변수명/문자열 리터럴 등)의 언어별 이원화는 실효성이 낮음 — 필요 시 `title`/`entry` 주석 등 카드 본문 번역으로 흡수.
+
+#### 4.4.6 번역 상태 메타데이터 (`locales/<lang>/translation-status.json`)
+
+`locales/<lang>/` 폴더가 존재하면 **필수**로 두어야 하는 파일입니다. 해당 언어 콘텐츠의 생성 경위와 파일 단위 검수 상태를 추적합니다.
+
+```json
+{
+  "language": "en",
+  "source_language": "ko",
+  "status": "draft",
+  "generated_by": "ai_auto_translation",
+  "generated_at": "2026-08-20T09:00:00Z",
+  "updated_at": "2026-08-24T03:12:00Z",
+  "items": [
+    { "path": "wiki.md",              "status": "reviewed",  "reviewed_at": "2026-08-24T03:00:00Z" },
+    { "path": "config.json",          "status": "reviewed",  "reviewed_at": "2026-08-24T03:00:00Z" },
+    { "path": "cards/01_intro.md",    "status": "draft" },
+    { "path": "cards/02_concept.md",  "status": "not_translated" },
+    { "path": "images/schema.png",    "status": "draft" }
+  ]
+}
+```
+
+##### 4.4.6.1 필드 명세
+
+| 필드명 | 타입 | 필수 여부 | 설명 |
+| :--- | :--- | :---: | :--- |
+| `language` | String | **Mandatory** | 이 오버레이 폴더가 속한 언어 코드. 폴더명(`en`/`vi`/`id`)과 일치해야 함 |
+| `source_language` | String | **Mandatory** | 번역 원본 언어 (통상 `package-manifest.json`의 `base_language`와 동일) |
+| `status` | String | **Mandatory** | 해당 언어 전체의 **롤업(rollup) 상태**. `not_translated` / `draft` / `reviewed` / `published` 중 하나. Vivo Academy 언어 선택 UI는 이 값이 `published`인 언어만 학습자에게 노출 (Studio 미리보기에서는 draft/reviewed도 저작자 본인에게는 노출) |
+| `generated_by` | String | Optional | 콘텐츠 생성 주체. `ai_auto_translation`(AI 자동 번역) / `human`(수동 작성) / `hybrid` |
+| `generated_at` | String (ISO 8601) | Optional | 최초 생성(AI 번역 초안 생성) 시각 |
+| `updated_at` | String (ISO 8601) | Optional | 마지막 수정/검수 시각 |
+| `items` | Array | Optional | 파일 단위 세부 상태. 생략 시 `status`(롤업 값)가 모든 파일에 동일 적용된 것으로 간주 |
+
+##### 4.4.6.2 `items[]` 원소 명세
+
+| 필드명 | 타입 | 필수 여부 | 설명 |
+| :--- | :--- | :---: | :--- |
+| `path` | String | **Mandatory** | base 루트 기준 상대경로 (예: `"cards/01_intro.md"`). 4.4.3절 경로 해석 규칙의 `p`와 동일한 값 |
+| `status` | String | **Mandatory** | `not_translated`(오버라이드 파일 없음, 루트로 폴백 중) / `draft`(AI 생성, 미검수) / `reviewed`(강사 검수 완료) / `published`(검수 완료 + 학습자 공개) |
+| `reviewed_at` | String (ISO 8601) | Optional | 검수 완료 시각 |
+| `reviewed_by` | String | Optional | 검수자 식별자(닉네임/이메일). PII 노출 최소화를 위해 앱단에서 마스킹 여부는 구현체 재량 |
+
+> **구현체 확장 필드 허용 (Gate B 결정):** `items[]` 원소에는 위 명세 필드(`path`/`status`/`reviewed_at`/`reviewed_by`) 외에 구현체별 추가 필드를 포함할 수 있습니다 (예: 재번역 감지용 `source_hash`). 검증기는 알려지지 않은 추가 필드를 거부하지 말고 **무시**해야 합니다 — 미지 필드의 존재만으로 검증 오류가 되어서는 안 됩니다.
+
+##### 4.4.6.3 상태(`status`) 값 정의
+
+| 값 | 의미 |
+| :--- | :--- |
+| `not_translated` | 해당 언어의 오버라이드 파일이 아직 없음(루트 base 콘텐츠로 자동 폴백 중) |
+| `draft` | AI 자동 번역으로 생성된 초안. 강사 미검수 상태 — Vivo Studio에서만 미리보기 가능, 학습자에게는 비공개 |
+| `reviewed` | 강사가 Vivo Studio에서 검수·수정 완료. 아직 공개 전(내부 QA 단계) |
+| `published` | 검수 완료 + 학습자에게 실제로 노출 중. Vivo Academy 언어 전환 스위처에 이 언어가 나타남 |
+
+> 강좌 자체의 `published`(공개 여부, `package-manifest.json`)와 언어별 `published`(번역 상태)는 **서로 다른 축**입니다. 강좌가 비공개면 어떤 언어든 노출되지 않고, 강좌가 공개여도 특정 언어가 아직 `draft`/`reviewed`면 그 언어만 학습자에게 숨겨집니다.
+
+##### 4.4.6.4 `package-manifest.json` 다국어 필드 (요약)
+
+| 필드명 | 타입 | 필수 여부 | 설명 |
+| :--- | :--- | :---: | :--- |
+| `base_language` | String | Optional (기본값 `"ko"`) | 강좌의 기본(원본) 언어. 기존 `language` 필드를 대체하되, 하위 호환을 위해 `language`도 계속 허용(별칭) — 상세는 4.1절 표 참조 |
+| `supported_languages` | Array of String | Optional (기본값 `[base_language]`) | 이 강좌가 제공하는 언어 코드 목록. `ko`/`en`/`vi`/`id` 중에서 선택. `base_language`는 항상 포함되어야 함 — 상세는 4.1절 표 참조 |
+
+가격(`price` 등 향후 필드)·`published`·`sequential_play`·`category` 등 기존 course-level 필드는 **언어 무관**으로 유지됩니다.
+
+#### 4.4.7 기존 단일언어 강좌 패키지 하위 호환성
+
+- **구조적 호환**: `locales/` 폴더는 완전 선택 항목이므로, 기존에 배포된 모든 ZIP/DB 레코드는 스키마 변경 없이 그대로 유효합니다.
+- **필드 호환**: 신설 필드(`base_language`, `supported_languages`)는 모두 Optional이며 기본값이 기존 동작과 동일합니다(`base_language` 기본값 `"ko"` = 기존 `language` 기본값과 동일, `supported_languages` 기본값 `[base_language]` = "언어 하나짜리 강좌"라는 기존 의미와 동일).
+- **`language` 필드 유지**: 기존 `language` 필드는 폐기하지 않고 `base_language`의 별칭(alias)으로 계속 허용합니다. 검증기는 둘 다 있을 때 값이 다르면 경고(오류 아님)만 발생시킵니다. 즉, 기존 제작 도구/에이전트가 `language` 필드만 채워도 계속 정상 동작합니다.
+- **마이그레이션 불필요**: `db.json`/`public/courses/[slug]/` 등 기존 저장소 레코드에 대해 별도 배치 마이그레이션 스크립트가 필요 없습니다. 로컬 실행 환경/서버는 압축 해제 시 `locales/` 폴더 존재 여부만 확인하고, 없으면 오늘과 동일한 코드 경로를 그대로 탑니다.
+- **재생 엔진 호환**: 구버전(다국어 미지원) 재생 엔진이 `locales/` 필드가 포함된 신규 번들을 만나면, 미지의 최상위 폴더로 안전하게 무시하고 기존처럼 루트 콘텐츠만 재생합니다 (알려지지 않은 임베드를 무시하는 기존 v1.4/v1.5 하위 호환 패턴과 동일한 접근).
+
+---
+
 ## 5. 제작 예시 (Implementation Example)
 
 ### 5.1 package-manifest.json 예시
@@ -679,6 +872,14 @@ theme: light
    - `license`가 `"custom"`이 아닌 경우 `license_file`은 필수는 아니지만, 4.1.2절의 제3자 리소스 고지가 필요하면 선택적으로 지정할 수 있습니다. 지정한 경우 그 값이 가리키는 파일이 ZIP 루트에 실제로 포함되어 있어야 합니다.
 7. **레거시(v1.3.0 이하) 카드 검증**:
    - `bundler_protocol_version`이 `1.3.0` 이하인 번들에 한해, 부록 A에 기술된 동영상 카드(`type:"video"`)·애니메이션 카드(`type:"animation"`) 스키마 검증 규칙이 그대로 적용됩니다(kind/effect/trigger/event 허용 목록, id 참조 무결성, `images/` 실존 검사, 스크립트 삽입 금지 포함). `1.4.0` 이상인 번들에는 `cards/*.json` 자체가 허용되지 않으므로(2번 항목) 이 규칙은 적용되지 않습니다.
+
+8. **다국어 오버레이(`locales/`) 검증 (v1.6.0 신설)**:
+   - `locales/` 폴더가 존재하면, 그 하위 각 언어 폴더명은 `en`/`vi`/`id` 중 하나여야 하며 (base language와 동일한 폴더는 금지 — 예: `base_language`가 `ko`인데 `locales/ko/`를 두는 것은 중복이므로 거부), `package-manifest.json`의 `supported_languages`에 해당 언어 코드가 포함되어 있어야 합니다.
+   - `locales/<lang>/` 폴더가 존재하면 `locales/<lang>/translation-status.json`이 **반드시** 존재해야 하며, 유효한 JSON이어야 하고 4.4.6절 스키마(특히 `language`, `source_language`, `status` Mandatory 필드 및 허용값)를 만족해야 합니다.
+   - `locales/<lang>/config.json`이 존재하는 경우, 4.4.4.1절 규칙(파일명 집합·트리 모양·`filename` 완전 동일, `card_style` 무시)을 만족해야 합니다.
+   - `locales/<lang>/cards/`, `locales/<lang>/images/`, `locales/<lang>/assets/**`에 존재하는 파일은 그 파일 자체에 대해 4.3절(카드) 및 4.4.5절(에셋 오버라이드) 및 기존 이미지/에셋 검증 규칙이 **동일하게** 적용됩니다(예: 카드 확장자 제한, GLB 매직바이트 검사 등 — 언어 오버라이드라고 검증이 느슨해지지 않음).
+   - `translation-status.json`의 `items[].path`에 나열된 경로는 실제로 `locales/<lang>/` 아래 존재하는 파일과 일치해야 합니다(`status`가 `not_translated`인 항목 제외). 반대로 `locales/<lang>/` 아래 실존하지만 `items[]`에 나열되지 않은 파일은 경고 처리(정보 누락). **`items[]` 원소에 명세에 없는 추가 필드(구현체별 확장, 예: 재번역 감지용 `source_hash`)가 포함되어 있어도 거부하지 않으며 무시합니다.**
+   - `supported_languages`에 나열되었으나 `locales/<lang>/` 폴더 자체가 없는 언어는 거부(선언만 하고 콘텐츠가 전혀 없는 상태 금지). 단, 폴더는 있고 안이 비어 있어(=모든 항목이 base로 폴백) `translation-status.json`만 있는 경우는 `not_translated` 상태로 허용(번역 착수 전 자리표시 용도).
 
 ---
 

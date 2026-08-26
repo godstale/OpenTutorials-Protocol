@@ -4,6 +4,26 @@
 
 ---
 
+## [v1.6.0] - 2026-08-26
+
+### Added
+- **다국어 강좌 지원 (Multilingual Course Support, 제4.4절)**:
+  - 하나의 강좌 패키지가 여러 언어 버전(기본 `ko` + 선택적 `en`/`vi`/`id`)을 갖고, Vivo Academy에서 같은 강좌 안에서 언어를 전환하여 볼 수 있습니다. 가격/공개 여부 등 강좌 메타데이터는 언어와 무관하게 강좌 단위로 공유됩니다.
+  - 신설 `locales/<lang>/` 오버레이 폴더 구조: 언어별로 "달라지는 파일만" 두고, 없는 파일은 base 언어(루트) 콘텐츠로 자동 폴백합니다. `wiki.md`/`config.json`/`cards/*`/`images/*`/`assets/**` 모두 동일한 경로 해석 규칙을 따릅니다.
+  - `package-manifest.json`에 `base_language`(기존 `language`의 후속, 별칭으로 하위호환 유지)와 `supported_languages` 필드를 추가했습니다.
+  - 언어별 번역 상태 추적을 위한 `locales/<lang>/translation-status.json` 스키마를 신설했습니다: 언어 전체 롤업 상태(`not_translated`/`draft`/`reviewed`/`published`) 및 파일 단위 세부 상태(`items[]`)를 기록하며, AI 자동 번역 초안(`generated_by: "ai_auto_translation"`) 이후 강사가 Vivo Studio에서 검수하는 워크플로우를 지원합니다. `published` 상태의 언어만 Vivo Academy 학습자 화면의 언어 스위처에 노출됩니다.
+  - `translation-status.json`의 `items[]` 원소는 명세 필드(`path`/`status`/`reviewed_at`/`reviewed_by`) 외에 구현체별 추가 필드(예: 재번역 감지용 `source_hash`)를 포함할 수 있으며, 검증기는 알려지지 않은 추가 필드를 거부하지 않고 무시합니다.
+  - `config.json` 언어별 오버라이드 시 TOC 트리 구조(`filename`, `type`, 노드 개수/순서)는 base와 동일해야 하며 `title`/`description` 텍스트만 달라질 수 있도록 제한했습니다(구조 드리프트 방지).
+  - 제6조 검증 규칙에 다국어 오버레이 검증 항목(8번)을 추가했습니다.
+
+### Non-Breaking / Compatibility
+- 기존 v1.5.0 이하 단일언어 강좌 번들과 완벽히 하위 호환됩니다. `locales/` 폴더가 없으면 기존과 완전히 동일하게 동작하며, 별도 마이그레이션이 필요하지 않습니다. `language` 필드는 계속 지원됩니다.
+
+### Changed
+- 문서 최상단 프로토콜 버전을 `1.5.0` → `1.6.0`으로 갱신하였습니다.
+
+---
+
 ## [v1.5.0] - 2026-08-22
 
 ### Added
