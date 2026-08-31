@@ -1,6 +1,6 @@
 # Open Tutorials Course Bundler Protocol Specification
 
-**Version:** 1.6.0
+**Version:** 1.7.0
 **Status:** Active
 **Scope:** Open Tutorials Course Packaging & local execution
 
@@ -12,6 +12,8 @@
 
 이 프로토콜은 온디바이스 로컬 실행 환경(`db.json` 및 `public/courses`)과의 완벽한 호환을 보장하며, AI Agent 기반의 자동 강좌 제작 프로젝트에서 참조하여 강좌 파일을 무결성 있게 제작하기 위한 공식 가이드라인입니다.
 
+> **v1.7.0 변경 요지 (인포맵-위키 페이지 지원):** 강좌(Course) 외에 Vivo 서비스의 "위키 페이지"(원자적 지식 콘텐츠 단위, 강좌와 동급) 패키지를 구분해 처리할 수 있도록 `package-manifest.json`에 콘텐츠 종류 discriminator `package_type`(`"course"` | `"info_page"`)을 신설했습니다. `package_type`을 생략하면 기존과 동일하게 `"course"`로 간주되어 v1.6.0 이하 패키지는 수정 없이 계속 유효합니다. 위키 페이지(`info_page`) 패키지는 `wiki.md`가 선택 사항이며, 카드 임베드는 `vivo:video`/`vivo:motion`만 허용됩니다(`vivo:lottie`/`vivo:3d`/`vivo:runtime` 금지). 그 외 `config.json`의 TOC 구조, `category`/`tags`, `locales/` 다국어 오버레이는 강좌와 완전히 동일하게 재사용합니다. 자세한 사항은 4.5절을 참조하십시오.
+>
 > **v1.6.0 변경 요지:** 하나의 강좌가 여러 언어 버전(한국어 기본 + 선택적 영어/베트남어/인도네시아어)을 갖고 Vivo Academy에서 언어를 전환하며 볼 수 있도록 다국어 지원(Multilingual Course Support)을 추가했습니다. 언어별 콘텐츠는 `locales/<lang>/` 오버레이 폴더에 "달라지는 파일만" 배치하는 방식이며, 기존 v1.5.0 이하 단일언어 번들과 완벽히 하위 호환됩니다.
 >
 > **v1.5.0 변경 요지:** 3D 모델 뷰어/플레이어 임베드(`vivo:3d`, GLB 모델 및 변환 애니메이션)와 코드 실습/실행 환경 임베드(`vivo:runtime`, WASM 4종 및 로컬 네이티브 툴체인)를 신규 임베드 타입으로 추가했습니다. 기존 v1.4.0 번들과 완벽히 하위 호환됩니다.
@@ -49,7 +51,7 @@ Open Tutorials 플랫폼에서 강좌 번들이 처리되고 데이터베이스�
 [강좌 패키지 ZIP 파일]
 ├── package-manifest.json           # 통합 강좌 및 패키지 메타데이터 (필수)
 ├── config.json                     # 목차 및 카드 목록 스키마 설정 (필수)
-├── wiki.md                         # 강좌 지식베이스 마크다운 파일 (필수)
+├── wiki.md                         # 강좌 지식베이스 마크다운 파일 (필수; package_type이 "info_page"이면 선택 — 4.5.2절 참조)
 ├── thumbnail.png                   # 대표 썸네일 이미지 (선택, package-manifest.json에 매핑 가능)
 ├── LICENSE.md                      # 라이선스 전문 및/또는 제3자 리소스 고지 (선택, license가 "custom"일 때 필수)
 ├── cards/                          # 강의 카드 디렉토리 (필수, .md/.mdx 파일만 허용 — .json 카드는 v1.4.0부터 금지)
@@ -83,6 +85,8 @@ Open Tutorials 플랫폼에서 강좌 번들이 처리되고 데이터베이스�
 > **레거시(v1.3.0 이하) 구조:** `bundler_protocol_version`이 `1.3.0` 이하인 번들은 `cards/` 아래 `.json`(`type:"video"`/`type:"animation"`) 카드를 계속 포함할 수 있습니다. 부록 A를 참조하십시오. 이 폴더 구조는 v1.4.0 이상(신규 제작)에 적용됩니다.
 >
 > **다국어(v1.6.0) 오버레이 구조:** `locales/` 폴더는 선택 항목이며, `bundler_protocol_version`이 `1.6.0` 미만이거나 `locales/`가 없는 번들은 기존과 동일한 단일 언어 강좌로 취급됩니다. 자세한 스키마는 4.4절을 참조하십시오.
+>
+> **인포맵-위키 페이지(v1.7.0) 구조:** `package-manifest.json`의 `package_type`이 `"info_page"`인 패키지는 위 디렉토리 구조를 그대로 사용하되 `wiki.md`가 선택 항목이 되고, `cards/*.md` 본문 임베드는 `vivo:video`/`vivo:motion`만 허용됩니다(`assets/lottie/`·`assets/models/`는 사용하지 않음). `package_type`이 없거나 `"course"`인 패키지는 기존과 완전히 동일합니다. 자세한 스키마는 4.5절을 참조하십시오.
 
 ---
 
@@ -103,6 +107,7 @@ Open Tutorials 플랫폼에서 강좌 번들이 처리되고 데이터베이스�
 | `version` | String | Optional | 강좌 패키지 자체의 배포 버전 (기본값: `"1.0.0"`) | `"1.2.0"` |
 | `changelog` | String | Optional | 버전별 주요 변경 사항 (기본값: `"최초 릴리즈"`) | `"TOC 구조 최적화 및 3장 실습 추가"` |
 | `bundler_protocol_version` | String | **Mandatory** | 이 번들이 준수한 번들러 프로토콜 명세 버전. 버전이 `1.4.0` 이상이면 4장의 단일 강좌 카드 스키마가, `1.3.0` 이하이면 부록 A의 레거시 스키마가 적용됩니다 | `"1.5.0"` |
+| `package_type` | String | Optional | 패키지의 콘텐츠 종류를 구분하는 discriminator(v1.7.0 신설). `"course"`(강좌) 또는 `"info_page"`(위키 페이지) 중 하나. **필드를 생략하면 `"course"`로 간주**되어 v1.6.0 이하로 제작된 기존 패키지는 수정 없이 계속 유효합니다. `"info_page"`일 때 적용되는 완화/제약 규칙은 4.5절 참조 | `"course"`, `"info_page"` |
 | `target_age` | String | **Mandatory** | 강좌 수강에 권장되는 대상 연령대 (`all` (전연령), `x+` (x세 이상), `min-max` (연령대 범위)) | `"all"`, `"10+"`, `"8-13"` |
 | `category` | String | **Mandatory** | 강좌의 대분류 카테고리 | `"Programming"`, `"Design"`, `"Marketing"`, `"Math"` |
 | `language` | String | Optional | 강좌 패키지의 주 언어 (기본값: `"ko"`). (v1.6.0부터 `base_language`로 대체되었으나 하위 호환을 위해 계속 지원되는 별칭입니다. 신규 제작 시 `base_language` 사용을 권장합니다.) | `"ko"`, `"en"` |
@@ -757,9 +762,67 @@ TOC 구조 자체(트리 모양, `filename` 매핑)는 언어에 따라 달라�
 
 ---
 
+### 4.5 인포맵-위키 페이지 지원 (Infomap & Wiki Page Support, v1.7.0 신설)
+
+Vivo 서비스는 강좌(Course) 외에 "인포맵"(위키 페이지들의 묶음, 학습 로드맵과 동급)과 "위키 페이지"(원자적 콘텐츠 단위, 강좌와 동급) 콘텐츠 유형을 제공합니다. 본 절은 **개별 위키 페이지 패키지(단일 ZIP)**가 기존 강좌 패키지 스키마를 어떻게 재사용하고 어느 지점에서 달라지는지를 규정합니다. 인포맵(위키 페이지 묶음) 자체를 표현하는 상위 번들 스키마는 본 버전(v1.7.0)의 범위에 포함되지 않습니다.
+
+설계 원칙은 4.4절(다국어 지원)과 동일하게 **최소 확장**입니다: `config.json`의 TOC 구조, `category`/`tags`, `locales/` 다국어 오버레이 등 이미 검증된 스키마는 그대로 재사용하고, 위키 페이지 고유의 성격(가벼운 참고 콘텐츠, AI 튜터 지식베이스와의 본질적 중복, 3D/코드 실습 같은 무거운 임베드가 불필요한 성격)에서 비롯되는 차이만 최소한으로 규정합니다.
+
+#### 4.5.1 `package_type` discriminator
+
+4.1절 표에 정의된 `package_type` 필드가 이 패키지가 강좌인지 위키 페이지인지를 구분하는 유일한 신호입니다. Vivo Studio/Academy/PennyPress 등 모든 소비처는 이 필드를 확인해 강좌 UI(순차 진도, 체크포인트 등)로 렌더링할지, 위키 페이지 UI(참고 문서형)로 렌더링할지 결정해야 합니다.
+
+- `package_type` 필드가 **없는** 패키지 → `"course"`로 간주. 아래 4.5.2~4.5.4절의 모든 완화/제약 규칙은 적용되지 않으며, 기존 강좌 검증 규칙이 그대로 적용됩니다(하위 호환).
+- `package_type: "course"` → 명시적으로 강좌임을 선언한 것으로, 필드를 생략한 경우와 동일하게 처리됩니다.
+- `package_type: "info_page"` → 아래 4.5.2~4.5.4절의 규칙이 적용됩니다.
+
+#### 4.5.2 `wiki.md` 필수 여부
+
+| `package_type` | `wiki.md` |
+| :--- | :--- |
+| `"course"` (또는 생략) | **Mandatory** (기존과 동일, 변경 없음) |
+| `"info_page"` | **Optional** |
+
+**결정 및 근거:** 강좌에서 `wiki.md`는 카드형 학습 콘텐츠(`cards/*.md`)와는 별개로 AI 튜터가 참조하는 종합 지식베이스 문서입니다(2장 1단계 참조). 반면 위키 페이지 패키지는 그 자체가 "원자적 지식 콘텐츠 단위"이며, 본문(`cards/*.md` 및 `config.json`의 `toc`)이 이미 지식 콘텐츠 그 자체입니다. 이 상황에서 `wiki.md`를 여전히 필수로 강제하면 제작자가 사실상 동일한 내용을 카드 본문과 `wiki.md`에 이중으로 유지보수해야 하는 불필요한 중복이 발생합니다. 따라서 `info_page`는 `wiki.md`를 선택 사항으로 완화합니다.
+
+- `wiki.md`가 존재하면 강좌와 동일하게 AI 튜터의 지식베이스로 사용됩니다(카드 본문보다 더 종합적인 설명이 필요할 때 제작자가 선택적으로 작성).
+- `wiki.md`가 없으면 AI 튜터는 해당 위키 페이지의 `cards/*.md` 콘텐츠 전체를 지식베이스로 폴백하여 사용합니다.
+- 이 완화는 `package_type: "info_page"`에만 적용됩니다. `package_type`이 없거나 `"course"`인 패키지는 `wiki.md` 누락 시 기존과 동일하게 검증 오류로 거부됩니다(6장 참조).
+
+#### 4.5.3 `config.json` — TOC 및 카드 목록 재사용
+
+위키 페이지 패키지의 `config.json`은 강좌와 **완전히 동일한 스키마**(4.2절)를 사용합니다: `cards[]`, `toc[]`(`chapter`/`section`/`subsection` 노드 타입 포함), 선택적 `card_style`. `package_type`에 따라 달라지는 별도 필드나 노드 타입은 신설하지 않습니다. TOC-카드 1:1 매칭, 기본 텍스트 방치 금지 등 6장의 기존 검증 규칙도 동일하게 적용됩니다.
+
+#### 4.5.4 카드 본문 임베드 화이트리스트
+
+| `package_type` | 허용되는 임베드 | 금지되는 임베드 |
+| :--- | :--- | :--- |
+| `"course"` (또는 생략) | `vivo:video`, `vivo:motion`, `vivo:lottie`, `vivo:3d`, `vivo:runtime` (기존 5종 그대로 유지, 변경 없음) | — |
+| `"info_page"` | `vivo:video`, `vivo:motion`만 허용 | `vivo:lottie`, `vivo:3d`, `vivo:runtime` |
+
+카드 본문은 텍스트, 이미지(`![alt](images/...)`), GFM 테이블(7장) 등 마크다운 요소와 `vivo:video`/`vivo:motion` 임베드만으로 구성됩니다. `vivo:lottie`/`vivo:3d`/`vivo:runtime` 펜스 블록이 위키 페이지 카드 본문에 하나라도 존재하면 검증 오류로 거부됩니다(6장 9번 항목). 이는 위키 페이지가 강좌보다 가벼운 참고 콘텐츠 단위로 설계되었고, 3D 모델·코드 실습 런타임처럼 무거운 바이너리·실행 환경 의존 임베드는 강좌 콘텐츠에 한정하기 위함입니다. `vivo:video`/`vivo:motion`의 필드 스키마 및 검증 규칙(4.3.3절, 4.3.4절)은 강좌와 동일하게 그대로 적용됩니다.
+
+이 화이트리스트는 카드 본문(`cards/*.md`)과 `locales/<lang>/cards/*.md` 오버라이드 카드 모두에 동일하게 적용됩니다.
+
+#### 4.5.5 `category`/`tags` 필드
+
+`category`(Mandatory)와 `tags`(Optional) 필드는 `package_type`과 무관하게 강좌와 완전히 동일한 방식으로 사용됩니다(4.1절). 위키 페이지 전용으로 별도 분류 체계를 신설하지 않습니다.
+
+#### 4.5.6 다국어 오버레이(`locales/`) 호환
+
+4.4절의 `locales/<lang>/` 오버레이 구조와 경로 해석 규칙은 `info_page` 패키지에도 동일하게 적용됩니다. `wiki.md`가 `info_page`에서 선택 사항이므로, `locales/<lang>/wiki.md` 역시 (루트 `wiki.md`가 존재할 때만) 동일한 선택적 오버라이드 대상이 됩니다. `locales/<lang>/cards/`에 배치되는 오버라이드 카드에도 4.5.4절의 임베드 화이트리스트가 동일하게 적용됩니다(언어 오버라이드라고 검증이 느슨해지지 않는다는 4.4절의 기존 원칙과 일관).
+
+#### 4.5.7 하위 호환성 요약
+
+- `package_type` 필드는 Optional이며 기본값 동작이 `"course"`이므로, 이 필드가 없는 v1.6.0 이하 기존 패키지는 스키마·검증 로직 변경 없이 계속 유효합니다.
+- `package_type: "info_page"`를 선언한 패키지에만 4.5.2~4.5.4절의 완화(`wiki.md` 선택)와 제약(임베드 화이트리스트 축소)이 적용되며, 기존 강좌 패키지의 동작에는 어떠한 영향도 없습니다.
+- `package_type`을 인식하지 못하는 구버전 소비처는 알려지지 않은 필드로 안전하게 무시하고 기존처럼 강좌로 취급할 수 있습니다(단, 이 경우 `info_page` 전용 임베드 제약은 강제되지 않으므로 최신 버전으로의 갱신을 권장합니다).
+
+---
+
 ## 5. 제작 예시 (Implementation Example)
 
-### 5.1 package-manifest.json 예시
+### 5.1 package-manifest.json 예시 (강좌, `package_type: "course"`)
 
 ```json
 {
@@ -777,7 +840,8 @@ TOC 구조 자체(트리 모양, `filename` 매핑)는 언어에 따라 달라�
   "force_checkpoint": false,
   "version": "1.0.0",
   "changelog": "최초 릴리즈",
-  "bundler_protocol_version": "1.5.0",
+  "bundler_protocol_version": "1.7.0",
+  "package_type": "course",
   "target_age": "10+",
   "category": "Programming",
   "language": "ko",
@@ -785,6 +849,36 @@ TOC 구조 자체(트리 모양, `filename` 매핑)는 언어에 따라 달라�
   "license": "CC-BY-4.0"
 }
 ```
+
+> `package_type: "course"`는 명시적으로 강좌임을 선언한 것이며, 필드 자체를 생략해도 동일하게 동작합니다(4.5.1절). 이 패키지는 `wiki.md`가 Mandatory이고, 카드 본문에 `vivo:video`/`vivo:motion`/`vivo:lottie`/`vivo:3d`/`vivo:runtime` 5종 임베드를 모두 사용할 수 있습니다.
+
+### 5.1-A package-manifest.json 예시 (위키 페이지, `package_type: "info_page"`)
+
+```json
+{
+  "title": "리액트 훅(Hooks) 치트시트",
+  "slug": "react-hooks-cheatsheet",
+  "description": "리액트 주요 훅의 사용법과 주의사항을 정리한 참고 위키 페이지",
+  "author": {
+    "nickname": "Kailash",
+    "email": "godstale@hotmail.com",
+    "website": "https://hardcopyworld.com"
+  },
+  "thumbnail": "./thumbnail.png",
+  "published": true,
+  "version": "1.0.0",
+  "changelog": "최초 릴리즈",
+  "bundler_protocol_version": "1.7.0",
+  "package_type": "info_page",
+  "target_age": "all",
+  "category": "Programming",
+  "language": "ko",
+  "tags": ["React", "Hooks", "Reference"],
+  "license": "CC-BY-4.0"
+}
+```
+
+> `package_type: "info_page"`인 이 패키지는 `wiki.md`를 생략할 수 있습니다(4.5.2절). 카드 본문 임베드는 `vivo:video`/`vivo:motion`만 허용되며, `vivo:lottie`/`vivo:3d`/`vivo:runtime`을 사용하면 검증 오류로 거부됩니다(4.5.4절). `sequential_play`/`force_checkpoint`처럼 순차 진도 강제와 관련된 필드는 위키 페이지 UI에서 의미가 없으므로 생략을 권장합니다(스키마상 여전히 Optional).
 
 ### 5.2 강좌 카드(`cards/01_intro.md`) 예시
 
@@ -823,7 +917,7 @@ theme: light
 강좌 번들 작성 시 다음 항목 중 하나라도 위배되면 플랫폼 내 업로드 단계에서 검증 오류가 발생하여 등록이 거부됩니다.
 
 1. **상위 디렉토리 미포함 (Flat ZIP)**:
-   - ZIP 파일 압축 시, 최상위 경로에 단일 폴더가 있고 그 안에 `package-manifest.json`이 들어있는 이중 레이어 구조는 금지됩니다. ZIP 파일을 열었을 때 바로 `package-manifest.json`, `config.json`, `wiki.md`, `cards/`가 최상위 루트에 존재해야 합니다.
+   - ZIP 파일 압축 시, 최상위 경로에 단일 폴더가 있고 그 안에 `package-manifest.json`이 들어있는 이중 레이어 구조는 금지됩니다. ZIP 파일을 열었을 때 바로 `package-manifest.json`, `config.json`, `cards/`가 최상위 루트에 존재해야 하며, `wiki.md`도 `package_type`이 `"info_page"`가 아닌 한(9번 항목 참조) 최상위 루트에 함께 존재해야 합니다.
 2. **TOC-Card 1:1 매칭 및 파일 정합성**:
    - `config.json`의 `cards` 배열 내 모든 파일명은 실제 ZIP 안의 `cards/` 폴더 내에 정확히 존재해야 하며, 대소문자까지 일치해야 합니다.
    - `bundler_protocol_version`이 `1.4.0` 이상이면 `cards/` 아래 파일은 `.md`/`.mdx` 확장자만 허용되며, `.json` 카드 파일이 하나라도 존재하면 검증이 거부됩니다. `1.3.0` 이하인 레거시 번들은 부록 A 규칙(마크다운 `.md`/`.mdx` 및 동영상·애니메이션 카드 `.json` 확장자 허용)이 그대로 적용됩니다.
@@ -880,6 +974,13 @@ theme: light
    - `locales/<lang>/cards/`, `locales/<lang>/images/`, `locales/<lang>/assets/**`에 존재하는 파일은 그 파일 자체에 대해 4.3절(카드) 및 4.4.5절(에셋 오버라이드) 및 기존 이미지/에셋 검증 규칙이 **동일하게** 적용됩니다(예: 카드 확장자 제한, GLB 매직바이트 검사 등 — 언어 오버라이드라고 검증이 느슨해지지 않음).
    - `translation-status.json`의 `items[].path`에 나열된 경로는 실제로 `locales/<lang>/` 아래 존재하는 파일과 일치해야 합니다(`status`가 `not_translated`인 항목 제외). 반대로 `locales/<lang>/` 아래 실존하지만 `items[]`에 나열되지 않은 파일은 경고 처리(정보 누락). **`items[]` 원소에 명세에 없는 추가 필드(구현체별 확장, 예: 재번역 감지용 `source_hash`)가 포함되어 있어도 거부하지 않으며 무시합니다.**
    - `supported_languages`에 나열되었으나 `locales/<lang>/` 폴더 자체가 없는 언어는 거부(선언만 하고 콘텐츠가 전혀 없는 상태 금지). 단, 폴더는 있고 안이 비어 있어(=모든 항목이 base로 폴백) `translation-status.json`만 있는 경우는 `not_translated` 상태로 허용(번역 착수 전 자리표시 용도).
+
+9. **`package_type` 및 위키 페이지(`info_page`) 패키지 검증 (v1.7.0 신설)**:
+   - `package-manifest.json`에 `package_type` 필드가 존재하면 값은 `"course"` 또는 `"info_page"` 중 하나여야 하며, 그 외 임의 문자열은 검증 오류입니다.
+   - `package_type` 필드가 **없으면** `"course"`로 간주되어, 이 항목의 나머지 규칙은 적용되지 않고 기존 강좌 검증 규칙(1~8번 항목)이 그대로 적용됩니다(하위 호환).
+   - `package_type: "info_page"`인 패키지는 `wiki.md`가 없어도 "필수 파일 누락"으로 거부되지 않습니다(4.5.2절). `package_type`이 없거나 `"course"`인 패키지는 `wiki.md` 누락 시 기존과 동일하게 거부됩니다.
+   - `package_type: "info_page"`인 패키지의 카드 본문(`cards/*.md` 및 `locales/<lang>/cards/*.md` 오버라이드 포함)에 `vivo:lottie`/`vivo:3d`/`vivo:runtime` 펜스 블록이 하나라도 존재하면 검증 오류로 거부됩니다. 허용되는 임베드 언어 식별자는 `vivo:video`/`vivo:motion`뿐입니다(4.5.4절). `vivo:video`/`vivo:motion` 자체의 필드 검증(5번 항목의 해당 규칙)은 강좌와 동일하게 그대로 적용됩니다.
+   - `config.json`(TOC/카드 매칭, 2·3번 항목), `category`/`tags`(4.1절), `locales/` 다국어 오버레이(8번 항목) 검증 규칙은 `package_type`과 무관하게 동일하게 적용됩니다.
 
 ---
 

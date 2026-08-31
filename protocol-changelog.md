@@ -4,6 +4,26 @@
 
 ---
 
+## [v1.7.0] - 2026-08-31
+
+### Added
+- **인포맵-위키 페이지 지원 (Infomap & Wiki Page Support, 제4.5절)**:
+  - `package-manifest.json`에 콘텐츠 종류 discriminator `package_type`(`"course"` | `"info_page"`, Optional, 기본값 `"course"`)을 신설했습니다(제4.1절). 이 필드로 Vivo Studio/Academy/PennyPress 등 모든 소비처가 강좌 패키지와 위키 페이지 패키지를 구분해 렌더링할 수 있습니다.
+  - `package_type: "info_page"` 패키지는 `wiki.md`가 **선택 사항**으로 완화됩니다(제4.5.2절). 위키 페이지 패키지 자체가 원자적 지식 콘텐츠 단위이며 카드 본문(`cards/*.md`)이 이미 지식 콘텐츠 그 자체이므로, 별도의 `wiki.md` 지식베이스 사본을 강제하면 동일 콘텐츠의 이중 유지보수가 발생한다는 점을 근거로 결정했습니다. `wiki.md`가 없으면 AI 튜터는 카드 콘텐츠로 폴백합니다.
+  - `package_type: "info_page"` 패키지의 카드 본문 임베드 화이트리스트를 `vivo:video`/`vivo:motion`으로 제한했습니다(제4.5.4절). `vivo:lottie`/`vivo:3d`/`vivo:runtime`은 검증 오류로 거부됩니다 — 3D 모델·코드 실습 런타임 같은 무거운 바이너리·실행 환경 의존 임베드를 강좌 콘텐츠에 한정하기 위함입니다. `package_type: "course"`(또는 생략)는 기존 5종 임베드를 변경 없이 그대로 사용합니다.
+  - `config.json`의 TOC 구조(`chapter`/`section`/`subsection`), `category`/`tags` 필드, `locales/<lang>/` 다국어 오버레이(v1.6.0)는 `info_page`에도 강좌와 완전히 동일하게 재사용됩니다. 위키 페이지 전용 신규 필드나 별도 스키마는 도입하지 않았습니다.
+  - 제6조 검증 규칙에 `package_type`/`info_page` 검증 항목(9번)을 추가했습니다: `package_type` 허용값 검증, `info_page`의 `wiki.md` 누락 허용, `info_page` 카드 본문의 임베드 화이트리스트 강제.
+  - `protocol.md` 제5장에 `course`/`info_page` 각각의 `package-manifest.json` 예시 스니펫을 추가했습니다.
+  - 인포맵(위키 페이지들의 묶음, 학습 로드맵과 동급) 자체를 표현하는 상위 번들 스키마는 본 버전의 범위에 포함되지 않습니다(향후 버전 과제).
+
+### Non-Breaking / Compatibility
+- `package_type` 필드는 Optional이며 생략 시 `"course"`로 간주됩니다. 따라서 이 필드가 없는 v1.6.0 이하 기존 패키지는 스키마·검증 로직 변경 없이 계속 유효합니다. `wiki.md` 선택 사항 완화 및 임베드 화이트리스트 축소는 `package_type: "info_page"`를 명시적으로 선언한 패키지에만 적용되며, 기존 강좌 패키지의 동작에는 영향이 없습니다.
+
+### Changed
+- 문서 최상단 프로토콜 버전을 `1.6.0` → `1.7.0`으로 갱신하였습니다.
+
+---
+
 ## [v1.6.0] - 2026-08-26
 
 ### Added
